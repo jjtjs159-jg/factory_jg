@@ -1,2 +1,2 @@
-# factory_jg
-jg's repository
+# factory
+test
