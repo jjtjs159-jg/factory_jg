@@ -1,0 +1,38 @@
+{
+    "presets": [
+        [
+            "@babel/preset-env",
+            {
+                "targets": {
+                    "browsers": [
+                        "last 2 versions",
+                        ">= 5% in KR"
+                    ]
+                }
+            }
+        ],
+        "@babel/react"
+    ],
+    "plugins": [
+        "lodash",
+        [
+            "module-resolver",
+            {
+                "root": ["./src"],
+                "alias": {
+                    "components": "./src/components",
+                    "pages": "./src/pages",
+                    "widgets": "./src/widgets",
+                    "helpers": "./src/helpers",
+                    "layouts": "./src/layouts",
+                    "hocs": "./src/hocs",
+                    "api": "./src/api",
+                    "analytics": "./src/analytics",
+                    "validations": "./src/validations",
+                    "hooks": "./src/hooks",
+                    "constants": "./src/constants",
+                }
+            }
+        ],
+    ],
+}
