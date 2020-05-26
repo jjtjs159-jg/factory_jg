@@ -11,6 +11,7 @@ class Home extends Component<Props> {
     render() {
         return (
             <Fragment>
+                커밋 테스트
                 <BrowserRouter>
                     <Switch>
                         <Route exact path="/study" component={Study} />
