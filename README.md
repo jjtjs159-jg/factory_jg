@@ -1,2 +1,2 @@
 # factory
-test
+create-react-app
