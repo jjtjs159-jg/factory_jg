@@ -1,5 +1,6 @@
 {
     "compilerOptions": {
+        "rootDirs": ["src", "stories"],
         "target": "es6",
         "module": "esnext",
         "moduleResolution": "node",
