@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { find } from 'lodash';
 import classNames from 'classnames/bind';
-import styles from './Study.module.scss';
+import styles from './index.module.scss';
 
 const cx = classNames.bind(styles);
 
