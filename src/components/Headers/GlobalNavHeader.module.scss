@@ -1,3 +1,5 @@
+@import "../../helpers/responsive.scss";
+
 .header-gnb {
     position: fixed;
     top: 0px;
@@ -8,5 +10,42 @@
 }
 
 .header-inner {
-    height: 0px;
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+.left {
+    position: absolute;
+    display: inline-block;
+    vertical-align: middle;
+    left: 20px;
+    width: 25%;
+
+    @include media(">tablet") {
+        color: red;
+    }
+}
+
+// @media (min-width: 767.98px) {
+
+//     .left {
+//         color: blue;
+//         text-align: center;
+//     }
+// }
+
+.center {
+    display: inline-block;
+    vertical-align: middle;
+    width: 100%;
+    text-align: center;
+}
+
+.right {
+    position: absolute;
+    display: inline-block;
+    vertical-align: middle;
+    width: 25%;
+    right: 20px;
 }

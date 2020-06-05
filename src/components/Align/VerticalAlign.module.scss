@@ -1,0 +1,15 @@
+.align-vertical {
+    display: table;
+    height: 100%;
+    margin: 0 auto;
+
+    &.fullsize {
+        width: 100%;
+    }
+}
+
+.align-vertical-inner {
+    display: table-cell;
+    height: 100%;
+    vertical-align: middle;
+}
