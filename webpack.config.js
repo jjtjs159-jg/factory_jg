@@ -1,6 +1,5 @@
 const path = require('path');
 const autoprefixer = require('autoprefixer');
-
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
@@ -45,8 +44,10 @@ module.exports = {
                     {
                         loader: require.resolve('css-loader'),
                         options: {
+                            importLoaders: 1,
                             modules: {
                                 localIdentName: "[name]__[local]___[hash:base64:5]",
+                                // localIdentName: "[local]",
                             },
                         },
                     },
@@ -54,6 +55,7 @@ module.exports = {
                         loader: require.resolve('postcss-loader'),
                         options: {
                             ident: 'postcss',
+                            module: true,
                             plugins: () => [
                                 require('postcss-flexbugs-fixes'),
                                 autoprefixer({
@@ -67,9 +69,27 @@ module.exports = {
                                 }),
                             ],
                         }
-                    }
-                ]
-            }
+                    },
+                    {
+                        loader: require.resolve('sass-loader'),
+                        options: {
+                            
+                        },
+                    },
+                ],
+            },
+            {
+                test: /\.(woff(2)?|otf|ttf|eot|svg)(\?v=\d+\.\d+\.\d+)?$/,
+                use: [
+                    {
+                        loader: 'file-loader',
+                        options: {
+                            name: '[name].[ext]',
+                            outputPath: 'fonts/'
+                        },
+                    },
+                ],
+            },
         ],
     },
     resolve: {
@@ -82,5 +102,9 @@ module.exports = {
         }),
 
         new ForkTsCheckerWebpackPlugin({ silent: true }),
+
+        // new ExtractTextPlugin.extract({
+        //     filename: 'common.css',
+        // }),
     ],
 };
