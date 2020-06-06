@@ -1,8 +1,13 @@
 const path = require('path');
+const webpack = require("webpack");
+const dotenv = require('dotenv');
 const autoprefixer = require('autoprefixer');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
-
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
+
+dotenv.config({
+    path: __dirname + '/.env'
+});
 
 module.exports = {
     devServer: {
@@ -16,6 +21,10 @@ module.exports = {
     output: {
         path: path.resolve(__dirname, 'dist/'),
         publicPath: '/',
+    },
+    node: {
+        fs: "empty",
+        global: true,
     },
     module: {
         rules: [
@@ -103,8 +112,26 @@ module.exports = {
 
         new ForkTsCheckerWebpackPlugin({ silent: true }),
 
+        new webpack.DefinePlugin({
+            "process.env": {
+                "API_URL": JSON.stringify(process.env.API_URL),
+            }
+        }),
+
         // new ExtractTextPlugin.extract({
         //     filename: 'common.css',
+        // }),
+
+        // new webpack.EnvironmentPlugin([
+        //     'NODE_ENV',
+        //     'API_URL',
+        //     'DEBUG',,
+        // ]),
+
+        // new webpack.DefinePlugin({
+        //     'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV),
+        //     'process.env.API_URL': JSON.stringify(process.env.API_URL),
+        //     'process.env.DEBUG': JSON.stringify(process.env.DEBUG)
         // }),
     ],
 };

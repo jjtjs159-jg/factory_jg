@@ -3,11 +3,12 @@ interface Payload {
     url: string;
 }
 
-const API_URL = 'http://localhost:3000';
+// const API_URL = 'http://localhost:3000';
 
 const api = async (payload: Payload) => {
+    console.log(process.env.API_URL);
     const result = await fetch(
-        API_URL + payload.url
+        process.env.API_URL + payload.url
     ).then(async (res: Response) => {
         const json = res.json();
         return await json.then(
