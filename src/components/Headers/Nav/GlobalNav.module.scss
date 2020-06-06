@@ -1,0 +1,20 @@
+@import "../../../helpers/responsive.scss";
+
+.wrap {
+    color: white;
+    font-size: 1.15rem;
+    width: 100%;
+}
+
+.item {
+    display: inline-block;
+    vertical-align: middle;
+    padding: 0px 4.5%;
+    text-decoration: none;
+    color: inherit;
+    transition: color .25s;
+
+    &:hover {
+        color: black;
+    }
+}
