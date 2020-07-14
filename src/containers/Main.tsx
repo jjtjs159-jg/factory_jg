@@ -1,4 +1,7 @@
 import React, { FunctionComponent, useEffect, useState, Fragment } from 'react';
+import * as testActions from 'actions/Test';
+import { Dispatch } from 'redux';
+import { connect } from 'react-redux';
 import { GlobalNavHeader } from 'components/Headers';
 import { requestApi } from 'api';
 import classNames from 'classnames/bind';
@@ -6,12 +9,12 @@ import styles from './Main.module.scss';
 
 const cx = classNames.bind(styles);
 
-interface Props {
+interface ABCProps {
     loaded: boolean;
     data: any;
 }
 
-const Test: FunctionComponent<Props> = ({
+const ABC: FunctionComponent<ABCProps> = ({
     data,
     loaded,
 }) => {
@@ -31,10 +34,20 @@ const Test: FunctionComponent<Props> = ({
     );
 };
 
+interface Props {
+    dispatch: Dispatch;
+}
+
 /**
  * Route: /
  */
-const Main: FunctionComponent = () => {
+const Main: FunctionComponent<Props> = ({
+    dispatch,
+}) => {
+
+    const handleTest = () => {
+        dispatch(testActions.getTest());
+    };
 
     const [state, setState] = useState({
         loaded: false,
@@ -69,10 +82,19 @@ const Main: FunctionComponent = () => {
         <div>
             <GlobalNavHeader />
             <div className={cx('container')}>
-                <Test loaded={state.loaded} data={state.data} />
+                <ABC loaded={state.loaded} data={state.data} />
+                <button onClick={handleTest}>
+                    버튼
+                </button>
             </div>
         </div>
     );
 }
 
-export default Main;
+const mapStateToProps = (state: any) => {
+    return {
+        user: state.user,
+    };
+};
+
+export default connect(mapStateToProps)(Main);

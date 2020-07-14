@@ -1,0 +1,9 @@
+{
+    "editor.tabSize": 4,
+    "editor.codeActionsOnSave": {
+        "source.fixAll": true
+    },
+    "editor.formatOnSave": false,
+    "eslint.alwaysShowStatus": true,
+    "typescript.tsdk": "node_modules\\typescript\\lib"
+}

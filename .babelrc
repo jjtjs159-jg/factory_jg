@@ -22,6 +22,8 @@
                 "root": ["./src"],
                 "alias": {
                     "components": "./src/components",
+                    "actions": "./src/actions",
+                    "reducers": "./src/reducers",
                     "containers": "./src/containers",
                     "pages": "./src/pages",
                     "widgets": "./src/widgets",
