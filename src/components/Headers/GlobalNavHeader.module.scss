@@ -1,29 +1,39 @@
 @import "../../helpers/responsive.scss";
 
-.header-gnb {
+.wrap {
     position: fixed;
     top: 0px;
     left: 0px;
     width: 100%;
     height: 80px;
     background-color: skyblue;
+    box-shadow: 0 1px 5px rgba(0,0,0,.1);
 }
 
 .header-inner {
     position: relative;
+    // width: 50%;
+    text-align: center;
     width: 100%;
     height: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
 }
 
 .left {
     position: absolute;
     display: inline-block;
     vertical-align: middle;
+    font-size: 1.6rem;
+    text-align: left;
     left: 20px;
+    top: 50%;
+    transform: translateY(-50%);
     width: 25%;
 
     @include media(">tablet") {
-        color: red;
+        // color: red;
+        color: white;
     }
 }
 
@@ -38,7 +48,8 @@
 .center {
     display: inline-block;
     vertical-align: middle;
-    width: 100%;
+    width: 50%;
+    margin: 0 auto;
     text-align: center;
 }
 
@@ -46,6 +57,9 @@
     position: absolute;
     display: inline-block;
     vertical-align: middle;
+    text-align: right;
     width: 25%;
     right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
 }

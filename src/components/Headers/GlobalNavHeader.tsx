@@ -1,5 +1,6 @@
 import React, { FunctionComponent } from 'react';
 import { VerticalAlign } from 'components/Align';
+import { GlobalNav } from 'components/Headers/Nav';
 import classNames from 'classnames/bind';
 import styles from './GlobalNavHeader.module.scss';
 
@@ -14,14 +15,14 @@ const GlobalNavHeader: FunctionComponent<Props> = ({
 }) => {
 
     return (
-        <div className={cx('header-gnb')}>
+        <div className={cx('wrap')}>
             <div className={cx('header-inner')}>
                 <VerticalAlign fullsize>
                     <div className={cx('left')}>
                         JG Frontend
                     </div>
                     <div className={cx('center')}>
-                        Nav
+                        <GlobalNav />
                     </div>
                     <div className={cx('right')}>
                         Menu
