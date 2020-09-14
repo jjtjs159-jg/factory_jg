@@ -8,11 +8,11 @@ interface Payload {
 const api = async (payload: Payload) => {
     console.log(process.env.API_URL);
     const result = await fetch(
-        process.env.API_URL + payload.url
+        'http://localhost:3000' + payload.url
     ).then(async (res: Response) => {
         const json = res.json();
         return await json.then(
-            (data: any) => {
+            (data) => {
                 return data;
             }).catch((error: any) => {
                 throw error;

@@ -2,6 +2,8 @@ import {
     useEffect,
     useState,
     useReducer,
+    Dispatch,
+    SetStateAction,
 } from 'react';
 import {
     isEmpty,
@@ -9,24 +11,22 @@ import {
     debounce,
 } from 'lodash';
 
-interface Props {
+interface Props<T> {
     // If the scroll base is window or container
     isWindow?: boolean;
     // The base container when `isWindow` is false
     container?: React.RefObject<any>;
     // The next data loader which is called when `fetching`
-    loader: () => Promise<any[]>;
+    loader: () => Promise<T[] | undefined>;
     // A callback which is called when `fetching`
     callback?: () => void;
-    // Number of data to fetch
-    length: number;
+    // Initial Items
+    initialItems?: any[];
 }
 
 interface State {
     // The number of data loaded
     items: any[];
-    // The number of data you want to load
-    currentLength: number;
     // True if there is data to be loaded otherwise false
     hasMore: boolean;
     // Mobile url bar height (diff active viewport and inactive viewport)
@@ -38,8 +38,15 @@ interface State {
     };
 }
 
+interface Return<T> {
+    isFetching: boolean;
+    setIsFetching: Dispatch<SetStateAction<boolean>>;
+    items: T[];
+    hasMore: boolean;
+}
+
 type Action =
-    | { type: 'LOAD'; items: any[]; currentLength: number }
+    | { type: 'LOAD'; items: any[]; currentLength?: number }
     | { type: 'STOP'; hasMore: boolean }
     | { type: 'SET_BARHEIGHT'; barHeight: number }
     | { type: 'SET_VIEWPORT';
@@ -51,7 +58,6 @@ type Action =
 
 const initialState: State = {
     items: [],
-    currentLength: 0,
     hasMore: true,
     barHeight: 0,
     viewport: {
@@ -65,7 +71,6 @@ const reducer = (state: State, action: Action) => {
         case 'LOAD': {
             return {
                 ...state,
-                currentLength: action.currentLength,
                 items: action.items,
             };
         }
@@ -99,6 +104,7 @@ const reducer = (state: State, action: Action) => {
 /**
  * An infinite scroll is triggered when you scroll to the bottom of the page(or container).
  * @param {object} props
+ * @returns {Return} The type of items is generic received as props generic
  *
  * Example when parent element is not window
  * you need parent container and code to run during fetching(ex. loader / spinner)
@@ -111,8 +117,14 @@ const reducer = (state: State, action: Action) => {
  * const container = getContainer();`
  * ```
  */
-const useInfiniteScroll = (props: Props) => {
-    const [state, dispatch] = useReducer(reducer, initialState);
+const useInfiniteScroll = <T>(props: Props<T>): Return<T> => {
+
+    const injectedState = {
+        ...initialState,
+        items: props.initialItems || [],
+    };
+
+    const [state, dispatch] = useReducer(reducer, injectedState);
 
     const [isFetching, setIsFetching] = useState(false);
     const [isResizing, setIsResizing] = useState(false);
@@ -122,11 +134,9 @@ const useInfiniteScroll = (props: Props) => {
         isWindow,
         loader,
         callback,
-        length,
     } = props;
 
     const {
-        currentLength,
         hasMore,
         items,
         barHeight,
@@ -137,19 +147,18 @@ const useInfiniteScroll = (props: Props) => {
      * The next data load which is called when fetching
      * @param {number} endpoint
      */
-    const dataLoader = async (endpoint: number) => {
-        await loader().then((response: any[]) => {
+    const dataLoader = async () => {
+        await loader().then((response) => {
             if (isEmpty(response)) {
-                onStop(false);
+                onStop(true);
             }
 
             if (!isEmpty(response)) {
                 onLoad({
                     items: state.items.concat(response),
-                    currentLength: response.length + endpoint,
                 });
             }
-        }).catch((error: any) => {
+        }).catch((error) => {
             console.log(error);
         }).finally(() => {
             setIsFetching(false);
@@ -161,7 +170,7 @@ const useInfiniteScroll = (props: Props) => {
         window.addEventListener('scroll', handleScroll, true);
         window.addEventListener('resize', handleViewResize, true);
 
-        dataLoader(length);
+        hasMore && dataLoader();
 
         return () => {
             window.removeEventListener('scroll', handleScroll, true);
@@ -172,18 +181,16 @@ const useInfiniteScroll = (props: Props) => {
     // When there is data that can be loaded and fetching
     useEffect(() => {
         if (!isFetching) return;
-        hasMore && dataLoader(currentLength);
+        hasMore && dataLoader();
     }, [isFetching, hasMore]);
 
     const onLoad = (
         param: {
-            items: any[];
-            currentLength: number;
+            items: T[];
         },
     ) => {
         dispatch({
             type: 'LOAD',
-            currentLength: param.currentLength,
             items: param.items,
         });
     };
