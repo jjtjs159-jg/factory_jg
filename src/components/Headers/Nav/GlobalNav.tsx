@@ -15,15 +15,7 @@ const GlobalNav: FunctionComponent<Props> = ({
 
     const items = [
         {
-            key: 'career',
-            link: '/study',
-        },
-        {
-            key: 'project',
-            link: '/study',
-        },
-        {
-            key: 'skills',
+            key: 'study',
             link: '/study',
         },
     ];

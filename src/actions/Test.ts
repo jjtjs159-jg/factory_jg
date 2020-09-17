@@ -6,10 +6,10 @@ export const GET_FAILURE = GET+'_FAILURE';
 export const getTest = () => {  
     return { 
     	type: GET, 
-    	// promise : { 
-        //     method : 'GET',
-        //     version : 'v1',
-        //     url : '/test'
-        // }
+    	promise : { 
+            method : 'GET',
+            version : 'v1',
+            url : '/test'
+        }
     };
 }
