@@ -38,6 +38,11 @@ interface Props {
     dispatch: Dispatch;
 }
 
+interface State {
+    loaded: boolean;
+    data: any;
+}
+
 /**
  * Route: /
  */
@@ -49,7 +54,7 @@ const Main: FunctionComponent<Props> = ({
         dispatch(testActions.getTest());
     };
 
-    const [state, setState] = useState({
+    const [state, setState] = useState<State>({
         loaded: false,
         data: {},
     });
@@ -82,10 +87,11 @@ const Main: FunctionComponent<Props> = ({
         <div>
             <GlobalNavHeader />
             <div className={cx('container')}>
-                <ABC loaded={state.loaded} data={state.data} />
-                <button onClick={handleTest}>
+                {/* <ABC loaded={state.loaded} data={state.data} /> */}
+                {/* <button onClick={handleTest}>
                     버튼
-                </button>
+                </button> */}
+                {/* {state.data.name} */}
             </div>
         </div>
     );
