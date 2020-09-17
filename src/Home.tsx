@@ -3,6 +3,7 @@ import {
     Main,
     Study,
     A11y,
+    Tsc,
 } from 'pages';
 import { BrowserRouter, Route, Link, Switch  } from 'react-router-dom';
 import classNames from 'classnames/bind';
@@ -23,6 +24,7 @@ class Home extends Component<Props> {
                         <Route exact path="/" component={Main} />
                         <Route exact path="/study" component={Study} />
                         <Route exact path="/a11y" component={A11y} />
+                        <Route exact path="/tsc" component={Tsc} />
                     </Switch>
                 </BrowserRouter>
             </Fragment>
