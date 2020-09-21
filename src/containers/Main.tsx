@@ -85,13 +85,14 @@ const Main: FunctionComponent<Props> = ({
 
     return (
         <div>
-            <GlobalNavHeader />
+            {/* <GlobalNavHeader /> */}
             <div className={cx('container')}>
                 {/* <ABC loaded={state.loaded} data={state.data} /> */}
                 {/* <button onClick={handleTest}>
                     버튼
                 </button> */}
                 {/* {state.data.name} */}
+                메인
             </div>
         </div>
     );
