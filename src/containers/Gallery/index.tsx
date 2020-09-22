@@ -1,145 +1,205 @@
-import React, { FunctionComponent, Fragment, useState, useEffect, useCallback } from 'react';
+import React, {
+    FunctionComponent,
+    Fragment,
+    useState,
+    useEffect,
+    useCallback,
+    useReducer,
+    CSSProperties
+} from 'react';
+import { concat, isEqual } from 'lodash';
 import classNames from 'classnames/bind';
-import { throttle } from 'lodash';
 import styles from './index.module.scss';
 
 const cx = classNames.bind(styles);
 
 interface Props {
-
+    delay: number;
 }
 
-const index: FunctionComponent<Props> = ({
+interface State {
+    // 방향
+    dir: 'NEXT' | 'PREV';
+    idx: number;
+    isAnimating: boolean;
+    transform?: CSSProperties['transform'];
+    transitionDuration?: CSSProperties['transitionDuration'];
+}
 
-}) => {
-    const itemList = [
-        {
-            backgroundColor: 'red',
-        },
-        {
-            backgroundColor: 'blue',
-        },
-        {
-            backgroundColor: 'green',
-        },
-        {
-            backgroundColor: 'cyan',
-        },
-        {
-            backgroundColor: 'purple',
-        },
-        {
-            backgroundColor: 'brown',
-        },
-        {
-            backgroundColor: 'black',
-        }
-    ];
+type Action =
+    | { type: 'STOP' }
+    | { type: 'PREV', transform?: CSSProperties['transform'], transitionDuration?: CSSProperties['transitionDuration']}
+    | { type: 'NEXT', transform?: CSSProperties['transform'], transitionDuration?: CSSProperties['transitionDuration']}
+    | { type: 'RESET', idx: number, transform?: CSSProperties['transform'], transitionDuration?: CSSProperties['transitionDuration']}
+;
 
-    const [idx, setIdx] = useState(0);
-    // const [isLast, setIsLast] = useState(false);
-    const list = [itemList[itemList.length - 1]].concat(itemList).concat([itemList[0]]); 
-    // console.log(idx);
-    
+const itemList = [
+    {
+        backgroundColor: 'red',
+    },
+    {
+        backgroundColor: 'blue',
+    },
+    {
+        backgroundColor: 'green',
+    },
+    {
+        backgroundColor: 'cyan',
+    },
+    {
+        backgroundColor: 'purple',
+    },
+    {
+        backgroundColor: 'brown',
+    },
+    {
+        backgroundColor: 'black',
+    },
+];
 
-    const add = () => setIdx(idx + 1);
-
-    const [animation, setAnimation] = useState({
-        transform: `translate3d(calc(-100% * ${idx + 1}), 0px, 0px)`,
-        transitionDuration: '350ms',
-    });
-
-    const [isAnimating, setIsAnimating] = useState(false);
-
-    let returnflag = false;
-
-    const handleClick = () => {
-        // if (idx === itemList.length - 1) {
-            
-        //     return;
-        // }
-        if (returnflag) {
-            console.log('returnflag > ' + returnflag)
-            return;
-        }
-
-        if (idx === itemList.length - 1) {
-            // console.log('same > ' + idx)
-            // setIdx(0);
-            // setIsLast(true);
-            // return;
-            setAnimation({
-                ...animation,
-                transitionDuration: '0ms'
-            })
-        }
-
-        if (idx === itemList.length) {
-            return;
-        }
-        setAnimation({
-            transform: `translate3d(calc(-100% * ${idx + 2}), 0px, 0px)`,
-            transitionDuration: '350ms'
-        })
-        add();
+const index: FunctionComponent<Props> = ({ delay = 350 }) => {
+    const initialState: State = {
+        dir: 'NEXT',
+        idx: itemList.length - 1,
+        // transform: `translate3d(-100%, 0px, 0px)`,
+        transform: `translate3d(calc(-100% * ${itemList.length}), 0px, 0px)`,
+        transitionDuration: `${delay}ms`,
+        isAnimating: false,
     };
 
+    const reducer = (state: State, action: Action): State => {
+        switch (action.type) {
+            case 'PREV':
+                const absIdx = Math.abs(state.idx);
+                return {
+                    dir: 'PREV',
+                    isAnimating: true,
+                    idx: state.idx - 1,
+                    transform: action.transform || `translate3d(calc(-100% * (${absIdx})), 0px, 0px)`,
+                    transitionDuration: action.transitionDuration || `${delay}ms`,
+                };
+            case 'NEXT':
+                return {
+                    dir: 'NEXT',
+                    isAnimating: true,
+                    idx: state.idx + 1,
+                    transform: action.transform || `translate3d(calc(-100% * (${state.idx + 2})), 0px, 0px)`,
+                    transitionDuration: action.transitionDuration || `${delay}ms`,
+                };
+            case 'RESET':
+                return {
+                    ...state,
+                    isAnimating: true,
+                    idx: action.idx,
+                    transform: action.transform,
+                    transitionDuration: action.transitionDuration,
+                }
+            case 'STOP':
+                return { ...state, isAnimating: false, };
+            default:
+                return state;
+        }
+    };
+
+    const [state, dispatch] = useReducer(reducer, initialState);
+    const {
+        dir,
+        idx,
+        isAnimating,
+        transform,
+        transitionDuration,
+    } = state;
+
+    const firstOfItemList = [itemList[0]];
+    const lastOfItemList = [itemList[itemList.length - 1]];
+    const concatenatedList = lastOfItemList.concat(itemList, firstOfItemList);
+
+    const handleNext = () => {
+        if (isAnimating) {
+            return;
+        }
+
+        dispatch({
+            type: 'NEXT',
+        });
+    };
+
+    const handlePrev = () => {
+        if (isAnimating) {
+            return;
+        }
+
+        dispatch({
+            type: 'PREV',
+        });
+    };
+
+    // 슬라이드 후 처리
     useEffect(() => {
-        returnflag = true;
-
-        if (idx === 0) {
-            // console.log('reset')
-            setAnimation({
-                transform: `translate3d(calc(-100% * ${idx + 1}), 0px, 0px)`,
-                transitionDuration: '0ms'
-            })
+        if (!isAnimating) {
+            return;
         }
-        
-        if (idx === itemList.length) {
-            console.log('왓')
-            console.log(returnflag);
-            
-            setAnimation({
-                transform: `translate3d(calc(-100% * ${idx + 1}), 0px, 0px)`,
-                transitionDuration: '350ms'
-            })
-            // setIsLast(true);
-            setTimeout(() => {
-                setIdx(0);
 
-            }, 350);
-        } else {
+        // NEXT RESET
+        if (isEqual(dir, 'NEXT') && isEqual(idx, itemList.length)) {
             setTimeout(() => {
-                returnflag = false;
-            }, 350);
+                dispatch({
+                    type: 'RESET',
+                    idx: 0,
+                    transform: `translate3d(-100%, 0px, 0px)`,
+                    transitionDuration: '0ms',
+                });
+            }, delay);
+            return;
         }
-        
-    }, [idx]);
 
-    // useEffect(() => {
-    //     if (isLast) {
-    //         // setIsLast(false);
-    //         setIdx(0);
-    //     }
-    // }, [isLast]);
+        // PREV RESET
+        if (isEqual(dir, 'PREV') && isEqual(idx, -1)) {
+            const last = itemList.length;
+            setTimeout(() => {
+                dispatch({
+                    type: 'RESET',
+                    idx: itemList.length - 1,
+                    transform: `translate3d(calc(-100% * ${last}), 0px, 0px)`,
+                    transitionDuration: '0ms',
+                });
+            }, delay);
+            return;
+        }
 
+    }, [state.idx]);
+
+    useEffect(() => {
+        if (isAnimating) {
+            setTimeout(() => {
+                dispatch({
+                    type: 'STOP',
+                });
+            }, delay);
+        }
+    }, [state.idx]);
 
     return (
         <Fragment>
             <div className={cx('slick')}>
-                <div className={cx('slick-wrapper')} style={{ ...animation }}>
-                {list.map((item, i) => {
-                    return (
-                        <div className={cx('slot')} style={{ backgroundColor: item.backgroundColor }}>
-                            sadsad
-                        </div>
-                    )
-                })}
-                </div> 
+                <div className={cx('slick-wrapper')} style={{ transform, transitionDuration }}>
+                    {concatenatedList.map((item, i) => {
+                        return (
+                            <div
+                                key={i}
+                                className={cx('slot')}
+                                style={{
+                                    backgroundColor: item.backgroundColor,
+                                }}
+                            >
+                                {i}
+                            </div>
+                        );
+                    })}
+                </div>
             </div>
-            <button onClick={handleClick}>
-                Next
-            </button>
+            <button onClick={handlePrev}>Prev</button>
+            <button onClick={handleNext}>Next</button>
         </Fragment>
     );
 };
