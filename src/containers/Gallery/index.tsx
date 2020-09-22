@@ -4,6 +4,7 @@ import React, {
     useState,
     useEffect,
     useCallback,
+    StyleHTMLAttributes,
     useReducer,
     CSSProperties
 } from 'react';
@@ -16,6 +17,8 @@ const cx = classNames.bind(styles);
 interface Props {
     delay: number;
     showsPerRow: number;
+    padding: number;
+    showsNextSize: number;
 }
 
 interface State {
@@ -60,14 +63,29 @@ const itemList = [
 
 const index: FunctionComponent<Props> = ({
     delay = 350,
-    showsPerRow = 4,
+    showsPerRow = 1,
+    padding = 20,
+    showsNextSize = '5%'
 }) => {
-    const width = 100 / showsPerRow;
+
+    const winX = window.innerWidth;
+
+    const calculatedMargin = `${(padding * 2) * (showsPerRow + 1)}px`;
+    console.log(calculatedMargin)
+    const widtha = !padding ? `${100 / showsPerRow}%` : `calc(((100% - ${calculatedMargin}) / 2) - ${showsNextSize})`;
+
+    const width = `${100 / showsPerRow}%`;
+
+    // const firstFrames = [itemList[0]];
+    const firstFrames = itemList.slice(0, showsPerRow);
+    // const lastOfItemList = [itemList[itemList.length - 1]];
+    const lastframes = itemList.slice(itemList.length - showsPerRow, itemList.length);
+    const concatenatedList = lastframes.concat(itemList, firstFrames);
 
     const initialState: State = {
         dir: 'NEXT',
         idx: itemList.length - 1,
-        transform: `translate3d(calc(-${width}% * ${itemList.length}), 0px, 0px)`,
+        transform: `translate3d(calc(-${width} * ${itemList.length}), 0px, 0px)`,
         transitionDuration: `${delay}ms`,
         isAnimating: false,
     };
@@ -80,7 +98,7 @@ const index: FunctionComponent<Props> = ({
                     dir: 'PREV',
                     isAnimating: true,
                     idx: state.idx - 1,
-                    transform: action.transform || `translate3d(calc(-${width}% * (${absIdx})), 0px, 0px)`,
+                    transform: action.transform || `translate3d(calc(-${width} * (${absIdx})), 0px, 0px)`,
                     transitionDuration: action.transitionDuration || `${delay}ms`,
                 };
             case 'NEXT':
@@ -88,7 +106,7 @@ const index: FunctionComponent<Props> = ({
                     dir: 'NEXT',
                     isAnimating: true,
                     idx: state.idx + 1,
-                    transform: action.transform || `translate3d(calc(-${width}% * (${state.idx + 2})), 0px, 0px)`,
+                    transform: action.transform || `translate3d(calc(-${width} * (${state.idx + 2})), 0px, 0px)`,
                     transitionDuration: action.transitionDuration || `${delay}ms`,
                 };
             case 'RESET':
@@ -114,12 +132,6 @@ const index: FunctionComponent<Props> = ({
         transform,
         transitionDuration,
     } = state;
-
-    // const firstFrames = [itemList[0]];
-    const firstFrames = itemList.slice(0, showsPerRow);
-    // const lastOfItemList = [itemList[itemList.length - 1]];
-    const lastframes = itemList.slice(itemList.length - showsPerRow, itemList.length);
-    const concatenatedList = lastframes.concat(itemList, firstFrames);
 
     const handleNext = () => {
         if (isAnimating) {
@@ -153,7 +165,7 @@ const index: FunctionComponent<Props> = ({
                 dispatch({
                     type: 'RESET',
                     idx: 0,
-                    transform: `translate3d(-${width}%, 0px, 0px)`,
+                    transform: `translate3d(-${width}, 0px, 0px)`,
                     transitionDuration: '0ms',
                 });
             }, delay);
@@ -167,7 +179,7 @@ const index: FunctionComponent<Props> = ({
                 dispatch({
                     type: 'RESET',
                     idx: itemList.length - 1,
-                    transform: `translate3d(calc(-${width}% * ${last}), 0px, 0px)`,
+                    transform: `translate3d(calc(-${width} * ${last}), 0px, 0px)`,
                     transitionDuration: '0ms',
                 });
             }, delay);
@@ -197,7 +209,9 @@ const index: FunctionComponent<Props> = ({
                                 className={cx('slot')}
                                 style={{
                                     backgroundColor: item.backgroundColor,
-                                    minWidth: `${width}%`
+                                    minWidth: `${width}`,
+                                    // minWidth: `calc(${width} - ${padding * 2}px)`,
+                                    // margin: `0px ${padding}px`
                                 }}
                             >
                                 {i}
