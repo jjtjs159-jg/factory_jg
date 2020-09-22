@@ -15,6 +15,7 @@ const cx = classNames.bind(styles);
 
 interface Props {
     delay: number;
+    showsPerRow: number;
 }
 
 interface State {
@@ -57,12 +58,16 @@ const itemList = [
     },
 ];
 
-const index: FunctionComponent<Props> = ({ delay = 350 }) => {
+const index: FunctionComponent<Props> = ({
+    delay = 350,
+    showsPerRow = 4,
+}) => {
+    const width = 100 / showsPerRow;
+
     const initialState: State = {
         dir: 'NEXT',
         idx: itemList.length - 1,
-        // transform: `translate3d(-100%, 0px, 0px)`,
-        transform: `translate3d(calc(-100% * ${itemList.length}), 0px, 0px)`,
+        transform: `translate3d(calc(-${width}% * ${itemList.length}), 0px, 0px)`,
         transitionDuration: `${delay}ms`,
         isAnimating: false,
     };
@@ -75,7 +80,7 @@ const index: FunctionComponent<Props> = ({ delay = 350 }) => {
                     dir: 'PREV',
                     isAnimating: true,
                     idx: state.idx - 1,
-                    transform: action.transform || `translate3d(calc(-100% * (${absIdx})), 0px, 0px)`,
+                    transform: action.transform || `translate3d(calc(-${width}% * (${absIdx})), 0px, 0px)`,
                     transitionDuration: action.transitionDuration || `${delay}ms`,
                 };
             case 'NEXT':
@@ -83,7 +88,7 @@ const index: FunctionComponent<Props> = ({ delay = 350 }) => {
                     dir: 'NEXT',
                     isAnimating: true,
                     idx: state.idx + 1,
-                    transform: action.transform || `translate3d(calc(-100% * (${state.idx + 2})), 0px, 0px)`,
+                    transform: action.transform || `translate3d(calc(-${width}% * (${state.idx + 2})), 0px, 0px)`,
                     transitionDuration: action.transitionDuration || `${delay}ms`,
                 };
             case 'RESET':
@@ -110,9 +115,11 @@ const index: FunctionComponent<Props> = ({ delay = 350 }) => {
         transitionDuration,
     } = state;
 
-    const firstOfItemList = [itemList[0]];
-    const lastOfItemList = [itemList[itemList.length - 1]];
-    const concatenatedList = lastOfItemList.concat(itemList, firstOfItemList);
+    // const firstFrames = [itemList[0]];
+    const firstFrames = itemList.slice(0, showsPerRow);
+    // const lastOfItemList = [itemList[itemList.length - 1]];
+    const lastframes = itemList.slice(itemList.length - showsPerRow, itemList.length);
+    const concatenatedList = lastframes.concat(itemList, firstFrames);
 
     const handleNext = () => {
         if (isAnimating) {
@@ -146,7 +153,7 @@ const index: FunctionComponent<Props> = ({ delay = 350 }) => {
                 dispatch({
                     type: 'RESET',
                     idx: 0,
-                    transform: `translate3d(-100%, 0px, 0px)`,
+                    transform: `translate3d(-${width}%, 0px, 0px)`,
                     transitionDuration: '0ms',
                 });
             }, delay);
@@ -160,7 +167,7 @@ const index: FunctionComponent<Props> = ({ delay = 350 }) => {
                 dispatch({
                     type: 'RESET',
                     idx: itemList.length - 1,
-                    transform: `translate3d(calc(-100% * ${last}), 0px, 0px)`,
+                    transform: `translate3d(calc(-${width}% * ${last}), 0px, 0px)`,
                     transitionDuration: '0ms',
                 });
             }, delay);
@@ -190,6 +197,7 @@ const index: FunctionComponent<Props> = ({ delay = 350 }) => {
                                 className={cx('slot')}
                                 style={{
                                     backgroundColor: item.backgroundColor,
+                                    minWidth: `${width}%`
                                 }}
                             >
                                 {i}
