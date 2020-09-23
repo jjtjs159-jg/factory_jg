@@ -95,7 +95,6 @@ const index: FunctionComponent<Props> = ({
             case 'PREV':
                 const absIdx = Math.abs(state.idx);
                 const first = -(slideWidthPX + padding);
-                const a = first + (slideWidthPX + padding * 2);
                 // const prevMoveSize = (slideWidthPX + padding) * (absIdx) + (padding * (absIdx + 1));
                 const prevMoveSize = (slideWidthPX + padding) * (absIdx) + (padding * (absIdx + 1)) - padding * 2;
                 const test = state.idx === 0 ? Math.abs(first + (slideWidthPX + padding * 2)) : -prevMoveSize;
@@ -109,6 +108,8 @@ const index: FunctionComponent<Props> = ({
                 };
             case 'NEXT':
                 const nextMoveSize = (slideWidthPX + padding) * (state.idx + 2) + (padding * (state.idx + 1));
+                console.log(nextMoveSize)
+
                 return {
                     dir: 'NEXT',
                     isAnimating: true,
@@ -183,12 +184,14 @@ const index: FunctionComponent<Props> = ({
 
         // PREV RESET
         if (isEqual(dir, 'PREV') && isEqual(idx, -1)) {
+            const nextMoveSize = (slideWidthPX + padding) * (itemList.length + 1) + (padding * (itemList.length));
+            console.log(nextMoveSize - slideWidthPX - padding * 2)
             setTimeout(() => {
                 dispatch({
                     type: 'RESET',
                     idx: itemList.length - 1,
                     // transform: `translate3d(calc(-${slideWidthPX * (itemList.length + 1) + (padding * 2)}px), 0px, 0px)`,
-                    transform: `translate3d(calc(-${slideWidthPX * (itemList.length + 1) + (padding * 2)}px), 0px, 0px)`,
+                    transform: `translate3d(calc(-${nextMoveSize - slideWidthPX - padding * 2}px), 0px, 0px)`,
                     transitionDuration: '0ms',
                 });
             }, delay);
