@@ -63,29 +63,29 @@ const itemList = [
 
 const index: FunctionComponent<Props> = ({
     delay = 350,
-    showsPerRow = 1,
+    showsPerRow = 4,
     padding = 20,
-    showsNextSize = '5%'
+    showsNextSize = 5, // percentage
 }) => {
 
-    const winX = window.innerWidth;
-
-    const calculatedMargin = `${(padding * 2) * (showsPerRow + 1)}px`;
-    console.log(calculatedMargin)
-    const widtha = !padding ? `${100 / showsPerRow}%` : `calc(((100% - ${calculatedMargin}) / 2) - ${showsNextSize})`;
+    const winX = window.innerWidth; // 1920
 
     const width = `${100 / showsPerRow}%`;
+    
+    const wid = 100 / showsPerRow;
+    const moveSize = 100 / (itemList.length + (showsPerRow * (showsPerRow + 2)));
+    const slideWidthPX = winX * (wid - moveSize) / 100 - (padding * 2);
 
-    // const firstFrames = [itemList[0]];
     const firstFrames = itemList.slice(0, showsPerRow);
-    // const lastOfItemList = [itemList[itemList.length - 1]];
     const lastframes = itemList.slice(itemList.length - showsPerRow, itemList.length);
     const concatenatedList = lastframes.concat(itemList, firstFrames);
 
     const initialState: State = {
         dir: 'NEXT',
-        idx: itemList.length - 1,
-        transform: `translate3d(calc(-${width} * ${itemList.length}), 0px, 0px)`,
+        // idx: itemList.length - 1,
+        idx: 0,
+        // transform: `translate3d(calc(-${width} * ${itemList.length}), 0px, 0px)`,
+        transform: `translate3d(calc(-${slideWidthPX + padding}px), 0px, 0px)`,
         transitionDuration: `${delay}ms`,
         isAnimating: false,
     };
@@ -94,19 +94,23 @@ const index: FunctionComponent<Props> = ({
         switch (action.type) {
             case 'PREV':
                 const absIdx = Math.abs(state.idx);
+                const prevMoveSize = (slideWidthPX + padding) * (absIdx) + (padding * (absIdx + 1));
                 return {
                     dir: 'PREV',
                     isAnimating: true,
                     idx: state.idx - 1,
-                    transform: action.transform || `translate3d(calc(-${width} * (${absIdx})), 0px, 0px)`,
+                    // transform: action.transform || `translate3d(calc(-${width} * (${absIdx})), 0px, 0px)`,
+                    transform: action.transform || `translate3d(-${prevMoveSize}px, 0px, 0px)`,
                     transitionDuration: action.transitionDuration || `${delay}ms`,
                 };
             case 'NEXT':
+                const nextMoveSize = (slideWidthPX + padding) * (state.idx + 2) + (padding * (state.idx + 1));
                 return {
                     dir: 'NEXT',
                     isAnimating: true,
                     idx: state.idx + 1,
-                    transform: action.transform || `translate3d(calc(-${width} * (${state.idx + 2})), 0px, 0px)`,
+                    // transform: action.transform || `translate3d(calc(-${width} * (${state.idx + 2})), 0px, 0px)`,
+                    transform: action.transform || `translate3d(-${nextMoveSize}px, 0px, 0px)`,
                     transitionDuration: action.transitionDuration || `${delay}ms`,
                 };
             case 'RESET':
@@ -165,7 +169,7 @@ const index: FunctionComponent<Props> = ({
                 dispatch({
                     type: 'RESET',
                     idx: 0,
-                    transform: `translate3d(-${width}, 0px, 0px)`,
+                    transform: `translate3d(calc(-${width}), 0px, 0px)`,
                     transitionDuration: '0ms',
                 });
             }, delay);
@@ -209,9 +213,10 @@ const index: FunctionComponent<Props> = ({
                                 className={cx('slot')}
                                 style={{
                                     backgroundColor: item.backgroundColor,
-                                    minWidth: `${width}`,
-                                    // minWidth: `calc(${width} - ${padding * 2}px)`,
-                                    // margin: `0px ${padding}px`
+                                    // minWidth: `${width}`,
+                                    // minWidth: `${slideWidth}%`,
+                                    minWidth: `${slideWidthPX}px`,
+                                    margin: `0px ${padding}px`
                                 }}
                             >
                                 {i}
