@@ -70,7 +70,7 @@ const index: FunctionComponent<Props> = ({
 
     const winX = window.innerWidth; // 1920
 
-    const width = `${100 / showsPerRow}%`;
+    // const width = `${100 / showsPerRow}%`;
     
     const wid = 100 / showsPerRow;
     const moveSize = 100 / (itemList.length + (showsPerRow * (showsPerRow + 2)));
@@ -169,7 +169,7 @@ const index: FunctionComponent<Props> = ({
                 dispatch({
                     type: 'RESET',
                     idx: 0,
-                    transform: `translate3d(calc(-${width}), 0px, 0px)`,
+                    transform: `translate3d(calc(-${slideWidthPX + padding}px), 0px, 0px)`,
                     transitionDuration: '0ms',
                 });
             }, delay);
@@ -179,14 +179,14 @@ const index: FunctionComponent<Props> = ({
         // PREV RESET
         if (isEqual(dir, 'PREV') && isEqual(idx, -1)) {
             const last = itemList.length;
-            setTimeout(() => {
-                dispatch({
-                    type: 'RESET',
-                    idx: itemList.length - 1,
-                    transform: `translate3d(calc(-${width} * ${last}), 0px, 0px)`,
-                    transitionDuration: '0ms',
-                });
-            }, delay);
+            // setTimeout(() => {
+            //     dispatch({
+            //         type: 'RESET',
+            //         idx: itemList.length - 1,
+            //         transform: `translate3d(calc(-${slideWidthPX * last})px, 0px, 0px)`,
+            //         transitionDuration: '0ms',
+            //     });
+            // }, delay);
             return;
         }
 
