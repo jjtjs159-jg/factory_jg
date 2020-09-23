@@ -63,7 +63,7 @@ const itemList = [
 
 const index: FunctionComponent<Props> = ({
     delay = 350,
-    showsPerRow = 4,
+    showsPerRow = 2,
     padding = 20,
     showsNextSize = 5, // percentage
 }) => {
@@ -74,7 +74,7 @@ const index: FunctionComponent<Props> = ({
     
     const wid = 100 / showsPerRow;
     const moveSize = 100 / (itemList.length + (showsPerRow * (showsPerRow + 2)));
-    const slideWidthPX = winX * (wid - moveSize) / 100 - (padding * 2);
+    const slideWidthPX = Math.ceil(winX * (wid - moveSize) / 100 - (padding * 2));
 
     const firstFrames = itemList.slice(0, showsPerRow);
     const lastframes = itemList.slice(itemList.length - showsPerRow, itemList.length);
@@ -94,13 +94,17 @@ const index: FunctionComponent<Props> = ({
         switch (action.type) {
             case 'PREV':
                 const absIdx = Math.abs(state.idx);
-                const prevMoveSize = (slideWidthPX + padding) * (absIdx) + (padding * (absIdx + 1));
+                const first = -(slideWidthPX + padding);
+                const a = first + (slideWidthPX + padding * 2);
+                // const prevMoveSize = (slideWidthPX + padding) * (absIdx) + (padding * (absIdx + 1));
+                const prevMoveSize = (slideWidthPX + padding) * (absIdx) + (padding * (absIdx + 1)) - padding * 2;
+                const test = state.idx === 0 ? Math.abs(first + (slideWidthPX + padding * 2)) : -prevMoveSize;
                 return {
                     dir: 'PREV',
                     isAnimating: true,
                     idx: state.idx - 1,
                     // transform: action.transform || `translate3d(calc(-${width} * (${absIdx})), 0px, 0px)`,
-                    transform: action.transform || `translate3d(-${prevMoveSize}px, 0px, 0px)`,
+                    transform: action.transform || `translate3d(${test}px, 0px, 0px)`,
                     transitionDuration: action.transitionDuration || `${delay}ms`,
                 };
             case 'NEXT':
@@ -165,6 +169,7 @@ const index: FunctionComponent<Props> = ({
 
         // NEXT RESET
         if (isEqual(dir, 'NEXT') && isEqual(idx, itemList.length)) {
+            console.log('NEXT RESET')
             setTimeout(() => {
                 dispatch({
                     type: 'RESET',
@@ -178,15 +183,15 @@ const index: FunctionComponent<Props> = ({
 
         // PREV RESET
         if (isEqual(dir, 'PREV') && isEqual(idx, -1)) {
-            const last = itemList.length;
-            // setTimeout(() => {
-            //     dispatch({
-            //         type: 'RESET',
-            //         idx: itemList.length - 1,
-            //         transform: `translate3d(calc(-${slideWidthPX * last})px, 0px, 0px)`,
-            //         transitionDuration: '0ms',
-            //     });
-            // }, delay);
+            setTimeout(() => {
+                dispatch({
+                    type: 'RESET',
+                    idx: itemList.length - 1,
+                    // transform: `translate3d(calc(-${slideWidthPX * (itemList.length + 1) + (padding * 2)}px), 0px, 0px)`,
+                    transform: `translate3d(calc(-${slideWidthPX * (itemList.length + 1) + (padding * 2)}px), 0px, 0px)`,
+                    transitionDuration: '0ms',
+                });
+            }, delay);
             return;
         }
 
