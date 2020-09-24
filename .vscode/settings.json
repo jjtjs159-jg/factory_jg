@@ -5,5 +5,28 @@
     },
     "editor.formatOnSave": false,
     "eslint.alwaysShowStatus": true,
-    "typescript.tsdk": "node_modules\\typescript\\lib"
+    "typescript.tsdk": "node_modules\\typescript\\lib",
+    "workbench.colorCustomizations": {
+        "activityBar.foreground": "#00FFFF",
+        "badge.background": "#0088AA",
+    },
+    "editor.tokenColorCustomizations": {
+        // "functions": "#f48024",
+        "textMateRules": [
+            // {
+            //     "scope": "entity.name",
+            //     "settings": {
+            //         "fontStyle": "bold"
+            //     }
+            // },
+            {
+                "scope": "support.constant",
+                "settings": {
+                    // "foreground": "#00DDFF",
+                    "foreground": "#14CF94",
+                    "fontStyle": "italic"
+                }
+            },
+        ]
+    }
 }
