@@ -118,6 +118,10 @@ module.exports = {
             }
         }),
 
+        new webpack.ProvidePlugin({
+            'React': 'react',
+        }),
+
         // new ExtractTextPlugin.extract({
         //     filename: 'common.css',
         // }),
