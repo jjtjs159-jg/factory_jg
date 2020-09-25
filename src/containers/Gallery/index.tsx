@@ -10,6 +10,7 @@ import {
 } from 'react';
 import { concat, isEqual } from 'lodash';
 import { useSlick, useWindowSize } from 'hooks';
+import { Image } from 'components/Image';
 import classNames from 'classnames/bind';
 import styles from './index.module.scss';
 
@@ -94,10 +95,11 @@ const index: FunctionComponent<Props> = ({
                                 style={{
                                     backgroundColor: item.backgroundColor,
                                     minWidth: `${slotWidth}px`,
-                                    margin: `0px ${padding}px`
+                                    minHeight: '150px',
+                                    margin: `0px ${padding}px`,
                                 }}
                             >
-                                {i}
+                                <Image src="./src/containers/Gallery/thumb-doctork-camg.jpg" />
                             </div>
                         );
                     })}
