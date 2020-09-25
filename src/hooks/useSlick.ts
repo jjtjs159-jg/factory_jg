@@ -27,6 +27,13 @@ type Action =
     | { type: 'RESET', idx: number, transform?: CSSProperties['transform'], transitionDuration?: CSSProperties['transitionDuration']}
     | { type: 'RESIZE', transform?: CSSProperties['transform'], transitionDuration?: CSSProperties['transitionDuration']};
 
+
+/** 
+ *  const firstFrames = itemList.slice(0, showsPerRow);
+ *  const lastframes = itemList.slice(itemList.length - showsPerRow, itemList.length);
+ *  const concatenatedList = lastframes.concat(itemList, firstFrames);
+ */
+
 const useSlick = (props: Props) => {
     const { delay, showsPerRow, padding, length } = props;
 
