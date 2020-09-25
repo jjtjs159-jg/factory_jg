@@ -8,6 +8,7 @@ interface Props {
     padding: number;
     length: number;
     // windowWidth: number;
+    centerMode?: boolean;
 }
 
 interface State {
@@ -35,18 +36,24 @@ type Action =
  */
 
 const useSlick = (props: Props) => {
-    const { delay, showsPerRow, padding, length } = props;
+    const { delay, showsPerRow, padding, length, centerMode } = props;
 
     const windowWidth = window.innerWidth;
     
     const wid = 100 / showsPerRow;
     const moveSize = 100 / (length + (showsPerRow * (showsPerRow + 2)));
-    const slideWidthPX = Math.ceil(windowWidth * (wid - moveSize) / 100 - (padding * 2));
+
+    const slideWidthPX = !centerMode ? Math.ceil(windowWidth * (wid - moveSize) / 100 - (padding * 2))
+        : (windowWidth - (windowWidth * 0.05) * 2) / (showsPerRow + 1) - (padding * 2 * showsPerRow);
+    //const slideWidthPX = Math.ceil(windowWidth * (wid - moveSize) / 100 - (padding * 2));
+
+    console.log(slideWidthPX);
 
     const initialState: State = {
         dir: 'NEXT',
         idx: 0,
-        transform: `translate3d(calc(-${slideWidthPX + padding}px), 0px, 0px)`,
+        // transform: `translate3d(calc(-${slideWidthPX + padding}px), 0px, 0px)`, // !centermode
+        transform: `translate3d(calc(-${slideWidthPX - (windowWidth * 0.05)}px), 0px, 0px)`, // centermode
         transitionDuration: `${delay}ms`,
         isAnimating: false,
         width: window.innerWidth,

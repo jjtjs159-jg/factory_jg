@@ -77,6 +77,7 @@ const index: FunctionComponent<Props> = ({
         showsPerRow,
         padding,
         length: itemList.length,
+        centerMode: true,
     });
 
     const firstFrames = itemList.slice(0, showsPerRow);
@@ -96,6 +97,7 @@ const index: FunctionComponent<Props> = ({
                                     backgroundColor: item.backgroundColor,
                                     minWidth: `${slotWidth}px`,
                                     minHeight: '150px',
+                                    maxHeight: '300px',
                                     margin: `0px ${padding}px`,
                                 }}
                             >
