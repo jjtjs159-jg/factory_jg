@@ -10,6 +10,7 @@
         "activityBar.foreground": "#00FFFF",
         "badge.background": "#0088AA",
     },
+    "codemetrics.basics.CodeLensEnabled": false,
     "editor.tokenColorCustomizations": {
         // "functions": "#f48024",
         "textMateRules": [
