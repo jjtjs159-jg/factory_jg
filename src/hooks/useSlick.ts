@@ -46,20 +46,20 @@ const useSlick = (props: Props) => {
 
     const nextSlideSize = (100 / showsPerRow) - (100 / (length + showsPerRow * (showsPerRow + 2)));
     const slideSize = Math.floor(windowWidth * (nextSlideSize) / 100 - (padding * 2));
+    const initialTransform = -slideSize - padding;
 
     const initialState: State = {
         dir: 'NEXT',
         idx: 0,
         isAnimating: false,
-        transform: `translate3d(calc(-${slideSize + padding}px), 0px, 0px)`,
+        transform: `translate3d(${initialTransform}px, 0px, 0px)`,
         transitionDuration: `${delay}ms`,
     };
 
     const reducer = (state: State, action: Action): State => {
         switch (action.type) {
             case 'PREV':
-                const absIdx = Math.abs(state.idx);
-                const prevTransform = isEqual(state.idx, 0) ? padding : -(absIdx * (slideSize + padding * 2) + padding);
+                const prevTransform = isEqual(state.idx, 0) ? padding : -(Math.abs(state.idx) * (slideSize + padding * 2) - padding);
                 return {
                     dir: 'PREV',
                     isAnimating: true,
@@ -68,7 +68,6 @@ const useSlick = (props: Props) => {
                     transitionDuration: `${delay}ms`,
                 };
             case 'NEXT':
-                // const nextTransform = (slideSize + padding) * (state.idx + 2) + (padding * (state.idx + 1));
                 const nextTransform = -(slideSize * (state.idx + 2) + state.idx * padding * 2 + padding * 3);
                 return {
                     dir: 'NEXT',
@@ -112,7 +111,7 @@ const useSlick = (props: Props) => {
     } = state;
 
     const handleNext = () => {
-        if (!isAnimating) { 
+        if (!isAnimating) {
             dispatch({ type: 'NEXT' });
         }
     };
@@ -124,44 +123,41 @@ const useSlick = (props: Props) => {
     };
 
     useEffect(() => {
-        const handleResize = () => {    
-            if (isEqual(state.dir, 'NEXT') && isEqual(idx, 0)) {    
-                const slideSize = Math.floor(window.innerWidth * (nextSlideSize) / 100 - (padding * 2));
-                const size = slideSize + padding;
-        
+        const handleResize = () => {
+            const slideSize = Math.floor(window.innerWidth * (nextSlideSize) / 100 - (padding * 2));
+
+            if (isEqual(idx, 0)) {
+                const resizeTransform = -slideSize - padding;
+
                 dispatch({
                     type: 'RESIZE',
-                    transform: `translate3d(-${size}px, 0px, 0px)`,
+                    transform: `translate3d(${resizeTransform}px, 0px, 0px)`,
                     transitionDuration: '0ms',
                 });
 
                 return;
             }
 
-            if (isEqual(state.dir, 'NEXT') && !isEqual(idx, length)) {
-                const slideSize = Math.floor(window.innerWidth * (nextSlideSize) / 100 - (padding * 2));
-                const size = (slideSize + padding) * (state.idx + 1) + (padding * (state.idx));
-        
+            if (isEqual(state.dir, 'NEXT')) {
+                const resizeTransform = -(slideSize * state.idx + slideSize + state.idx * padding * 2 + padding);
+
                 dispatch({
                     type: 'RESIZE',
-                    transform: `translate3d(-${size}px, 0px, 0px)`,
+                    transform: `translate3d(${resizeTransform}px, 0px, 0px)`,
                     transitionDuration: '0ms',
                 });
 
                 return;
             }
 
-            if (isEqual(state.dir, 'PREV') && !isEqual(idx, -1)) {
-                const slideSize = Math.floor(window.innerWidth * (nextSlideSize) / 100 - (padding * 2));
+            if (isEqual(state.dir, 'PREV')) {
 
                 const absIdx = Math.abs(state.idx + 1);
-                const first = -(slideSize + padding);
-                const prevMoveSize = (slideSize + padding) * (absIdx) + (padding * (absIdx + 1)) - padding * 2;
-                const size = state.idx === 0 ? Math.abs(first + (slideSize + padding * 2)) : -prevMoveSize;
-                
+                const prevTransform = -(absIdx * (slideSize + padding * 2) - padding);
+
                 dispatch({
                     type: 'RESIZE',
-                    transform: `translate3d(${size}px, 0px, 0px)`,
+                    transform: `translate3d(${prevTransform}px, 0px, 0px)`,
                     transitionDuration: '0ms',
                 });
 
@@ -174,41 +170,42 @@ const useSlick = (props: Props) => {
         return () => {
             window.removeEventListener('resize', handleResize);
         }
-        
+
     }, [window.innerWidth, state.idx]);
 
     // 슬라이드 후 처리
     useEffect(() => {
-        if (!isAnimating) {
-            return;
-        }
+        if (isAnimating) {
 
-        // NEXT RESET
-        if (isEqual(dir, 'NEXT') && isEqual(idx, length)) {
-            setTimeout(() => {
-                dispatch({
-                    type: 'RESET',
-                    idx: 0,
-                    transform: `translate3d(calc(-${slideSize + padding}px), 0px, 0px)`,
-                    transitionDuration: '0ms',
-                });
-            }, delay);
-            return;
-        }
+            // NEXT RESET
+            if (isEqual(dir, 'NEXT') && isEqual(idx, length)) {
+                const transform = -(slideSize + padding);
+                setTimeout(() => {
+                    dispatch({
+                        type: 'RESET',
+                        idx: 0,
+                        transform: `translate3d(${transform}px, 0px, 0px)`,
+                        transitionDuration: '0ms',
+                    });
+                }, delay);
 
-        // PREV RESET
-        if (isEqual(dir, 'PREV') && isEqual(idx, -1)) {
-            console.log('??')
-            const nextMoveSize = (slideSize + padding) * (length + 1) + (padding * (length));
-            setTimeout(() => {
-                dispatch({
-                    type: 'RESET',
-                    idx: length - 1,
-                    transform: `translate3d(calc(-${nextMoveSize - slideSize - padding * 2}px), 0px, 0px)`,
-                    transitionDuration: '0ms',
-                });
-            }, delay);
-            return;
+                return;
+            }
+
+            // PREV RESET
+            if (isEqual(dir, 'PREV') && isEqual(idx, -1)) {
+                const transform = -(length * (slideSize + padding * 2) - padding);
+                setTimeout(() => {
+                    dispatch({
+                        type: 'RESET',
+                        idx: length - 1,
+                        transform: `translate3d(${transform}px, 0px, 0px)`,
+                        transitionDuration: '0ms',
+                    });
+                }, delay);
+
+                return;
+            }
         }
 
     }, [state.idx]);
@@ -223,10 +220,9 @@ const useSlick = (props: Props) => {
         }
     }, [state]);
 
-    console.log(isAnimating)
     return {
-        onPrev: isAnimating ? () => {} : handlePrev,
-        onNext: isAnimating ? () => {} : handleNext,
+        onPrev: handlePrev,
+        onNext: handleNext,
         transform: transform,
         duration: transitionDuration,
         slotWidth: slideSize,
