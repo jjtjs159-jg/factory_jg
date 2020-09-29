@@ -6,7 +6,7 @@ looselyTyped.toFixed();
 
 
 let unusable: void = undefined;
-unusable = null
+// unusable = null
 
 // Not much else we can assign to these variables!
 let u: undefined = undefined;
@@ -30,3 +30,48 @@ function infiniteLoop(): never {
 let someValue: unknown = 'this is a string';
 let strLength: number = (someValue as string).length;
 let strLength2: number = (<string>someValue).length;
+
+interface LabeledValue {
+    label: string;
+}
+
+function printLabel(labeledObj: LabeledValue) {
+    console.log(labeledObj.label);
+}
+
+let myObj = { size: 10, label: "Size 10 Object" };
+printLabel(myObj);
+printLabel({ size: 10, label: "Size 10 Object" } as LabeledValue);
+
+interface Point {
+	readonly x: number;
+	readonly y: number;
+}
+
+let p1: Point = {
+	x: 10,
+	y: 20,
+};
+
+// p1.x = 5; // Error
+
+let a: number[] = [1, 2, 3, 4];
+let ro: ReadonlyArray<number> = a;
+
+// ro[0] = 12; // Error
+// ro.push(5); // Error
+// ro.length = 100; // Error
+// a = ro; // Error
+
+a = ro as number[]; // OK
+
+interface SquareConfig {
+    color?: string;
+    width?: number;
+}
+
+function createSquare(config: SquareConfig): void {
+    // ...
+}
+
+// let mySquare = createSquare({ colour: "red", width: 100 });
