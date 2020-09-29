@@ -2,6 +2,7 @@ import {
     useEffect,
     useReducer,
     CSSProperties,
+    useState,
 } from 'react';
 import { debounce, isEqual, throttle } from 'lodash';
 
@@ -27,6 +28,13 @@ type Action =
     | { type: 'NEXT', transform?: string, transitionDuration?: string }
     | { type: 'RESIZE', transform?: string, transitionDuration?: string }
     | { type: 'RESET', idx: number, transform?: string, transitionDuration?: string };
+
+interface Gesture {
+    downX: number;
+    downY: number;
+    upX?: number;
+    upY?: number;
+}
 
 /** 
  *  const firstFrames = itemList.slice(0, showsPerRow);
@@ -121,6 +129,43 @@ const useSlick = (props: Props) => {
             dispatch({ type: 'PREV' });
         }
     };
+
+    const [gesture, setGesture] = useState<Gesture>();
+
+    useEffect(() => {
+        const handleMouseDown = (e) => {
+            if (!isAnimating) {
+                setGesture({
+                    downX: e.pageX,
+                    downY: e.pageY,
+                });
+            }
+        }
+
+        const handleMouseUp = (e) => {
+            if (!isAnimating) {
+                const moveX = e.pageX;
+    
+                if (gesture && (moveX - gesture.downX > 0)) {
+                    dispatch({ type: 'PREV' });
+                    return;
+                }
+    
+                if (gesture && (moveX - gesture.downX < 0)) {
+                    dispatch({ type: 'NEXT' });
+                    return;
+                }
+            }
+        }
+
+        window.addEventListener('mousedown', handleMouseDown);
+        window.addEventListener('mouseup', handleMouseUp);
+
+        return () => {
+            window.removeEventListener('mousedown', handleMouseDown);
+            window.removeEventListener('mouseup', handleMouseUp);
+        }
+    }, [gesture, isAnimating]);
 
     useEffect(() => {
         const handleResize = () => {
