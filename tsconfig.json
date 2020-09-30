@@ -7,7 +7,7 @@
         "strictNullChecks": true,
         "allowUmdGlobalAccess": true,
         "noResolve": false,
-        "noImplicitAny": false,
+        "noImplicitAny": true,
         "removeComments": true,
         "sourceMap": true,
         "allowJs": true,
