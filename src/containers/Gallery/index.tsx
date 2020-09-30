@@ -6,6 +6,7 @@ import {
     useCallback,
     StyleHTMLAttributes,
     useReducer,
+    useRef,
     CSSProperties
 } from 'react';
 import { concat, isEqual } from 'lodash';
@@ -68,7 +69,8 @@ const index: FunctionComponent<Props> = ({
     showsPerRow = 2,
     padding = 20,
 }) => {
-
+    
+    const wrapperRef = useRef(null);
     const windowSize = useWindowSize();
 
     const { onNext, onPrev, transform, duration, slotWidth } = useSlick({
@@ -77,6 +79,7 @@ const index: FunctionComponent<Props> = ({
         showsPerRow,
         padding,
         length: itemList.length,
+        wrapperRef: wrapperRef,
         // centerMode: true,
     });
 
@@ -86,7 +89,7 @@ const index: FunctionComponent<Props> = ({
 
     return (
         <Fragment>
-            <div className={cx('slick')}>
+            <div className={cx('slick')} ref={wrapperRef}>
                 <div className={cx('slick-wrapper')} style={{ transform, transitionDuration: duration }}>
                     {concatenatedList.map((item, i) => {
                         return (

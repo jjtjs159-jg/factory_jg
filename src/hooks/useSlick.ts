@@ -3,6 +3,9 @@ import {
     useReducer,
     CSSProperties,
     useState,
+    useRef,
+    ReactNode,
+    MutableRefObject
 } from 'react';
 import { debounce, isEqual, throttle } from 'lodash';
 
@@ -12,6 +15,7 @@ interface Props {
     padding: number;
     length: number;
     centerMode?: boolean;
+    wrapperRef: MutableRefObject<any>;
 }
 
 interface State {
@@ -47,6 +51,7 @@ const useSlick = (props: Props) => {
         showsPerRow,
         padding,
         length,
+        wrapperRef,
         centerMode,
     } = props;
 
@@ -120,50 +125,67 @@ const useSlick = (props: Props) => {
 
     const handleNext = () => {
         if (!isAnimating) {
+            console.log('next')
             dispatch({ type: 'NEXT' });
         }
     };
 
     const handlePrev = () => {
         if (!isAnimating) {
+            console.log('prev')
             dispatch({ type: 'PREV' });
         }
     };
 
+    // 캐러셀 범위 내에서, <버튼 범위 밖에서 일어나는 이벤트만 감지하여야 함 :: 취소>
+    // 버튼은 제외시킨다 
     const [gesture, setGesture] = useState<Gesture>();
+    // const slickRef = useRef(wrapper);
 
     useEffect(() => {
+        // const handleMouseMove = (e) => {
+        //     if (wrapperRef.current && wrapperRef.current.contains(e.target)) {
+        //         console.log('???')
+        //     }
+        // }
+
         const handleMouseDown = (e) => {
-            if (!isAnimating) {
-                setGesture({
-                    downX: e.pageX,
-                    downY: e.pageY,
-                });
+            if (wrapperRef.current && wrapperRef.current.contains(e.target)) {
+                if (!isAnimating) {
+                    setGesture({
+                        downX: e.pageX,
+                        downY: e.pageY,
+                    });
+                }
             }
         }
 
         const handleMouseUp = (e) => {
-            if (!isAnimating) {
-                const moveX = e.pageX;
-    
-                if (gesture && (moveX - gesture.downX > 0)) {
-                    dispatch({ type: 'PREV' });
-                    return;
-                }
-    
-                if (gesture && (moveX - gesture.downX < 0)) {
-                    dispatch({ type: 'NEXT' });
-                    return;
+            if (wrapperRef.current && wrapperRef.current.contains(e.target)) {
+                if (!isAnimating) {
+                    const moveX = e.pageX;
+        
+                    if (gesture && (moveX - gesture.downX > 0)) {
+                        dispatch({ type: 'PREV' });
+                        return;
+                    }
+        
+                    if (gesture && (moveX - gesture.downX < 0)) {
+                        dispatch({ type: 'NEXT' });
+                        return;
+                    }
                 }
             }
         }
 
         window.addEventListener('mousedown', handleMouseDown);
         window.addEventListener('mouseup', handleMouseUp);
+        // window.addEventListener('mousemove', handleMouseMove);
 
         return () => {
             window.removeEventListener('mousedown', handleMouseDown);
             window.removeEventListener('mouseup', handleMouseUp);
+            // window.removeEventListener('mousemove', handleMouseMove);
         }
     }, [gesture, isAnimating]);
 
