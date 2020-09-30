@@ -1,107 +1,89 @@
 import {
     useEffect,
     useReducer,
-    CSSProperties,
     useState,
-    useRef,
-    ReactNode,
     MutableRefObject,
+    ReactNodeArray,
+    useCallback,
+    useMemo,
 } from 'react';
-import { debounce, isEqual, throttle } from 'lodash';
+import { isEqual, debounce } from 'lodash';
 
 interface Props {
     delay: number;
-    showsPerRow: number;
     padding: number;
     length: number;
+    showsPerRow: number;
     centerMode?: boolean;
     wrapperRef: MutableRefObject<Node | null>;
+    // children: ReactNodeArray;
 }
 
 interface State {
-    dir: 'NEXT' | 'PREV';
     idx: number;
+    dir: 'NEXT' | 'PREV';
     isAnimating: boolean;
-    transform?: string;
-    transitionDuration?: string;
+    transform: string;
+    duration: string;
 }
 
 type Action =
     | { type: 'STOP' }
-    | { type: 'PREV', transform?: string, transitionDuration?: string }
-    | { type: 'NEXT', transform?: string, transitionDuration?: string }
-    | { type: 'RESIZE', transform?: string, transitionDuration?: string }
-    | { type: 'RESET', idx: number, transform?: string, transitionDuration?: string };
+    | { type: 'PREV', transform?: number, duration?: string }
+    | { type: 'NEXT', transform?: number, duration?: string }
+    | { type: 'RESIZE', transform: number }
+    | { type: 'RESET', idx: number, transform: number, duration?: string };
 
-interface Gesture {
-    downX: number;
-    downY: number;
-    upX?: number;
-    upY?: number;
+type ReturnValue = {
+    onPrev: () => void;
+    onNext: () => void;
+    transform?: string;
+    duration?: string;
+    slotWidth: number;
 }
 
-/** 
- *  const firstFrames = itemList.slice(0, showsPerRow);
- *  const lastframes = itemList.slice(itemList.length - showsPerRow, itemList.length);
- *  const concatenatedList = lastframes.concat(itemList, firstFrames);
+/**
+ * get rounded to the second decimal place
+ * @param {number} target 
  */
-const useSlick = (props: Props) => {
-    const {
-        delay,
-        showsPerRow,
-        padding,
-        length,
-        wrapperRef,
-        centerMode,
-    } = props;
+const getRoundedHundredth = (target: number) => {
+    return Math.round(target * 10) / 10;
+};
 
-    const windowWidth = window.innerWidth;
-
-    const nextSlideSize = (100 / showsPerRow) - (100 / (length + showsPerRow * (showsPerRow + 2)));
-    const slideSize = Math.floor(windowWidth * (nextSlideSize) / 100 - (padding * 2));
-    const initialTransform = -slideSize - padding;
-
-    const initialState: State = {
-        dir: 'NEXT',
-        idx: 0,
-        isAnimating: false,
-        transform: `translate3d(${initialTransform}px, 0px, 0px)`,
-        transitionDuration: `${delay}ms`,
-    };
-
+const createReducer = (padding: number, slide: number, delay: number) => {
     const reducer = (state: State, action: Action): State => {
         switch (action.type) {
             case 'PREV':
-                const prevTransform = isEqual(state.idx, 0) ? padding : -(Math.abs(state.idx) * (slideSize + padding * 2) - padding);
+                const prevTransform = isEqual(state.idx, 0) ? padding : -(Math.abs(state.idx) * (slide + padding * 2) - padding);
                 return {
                     dir: 'PREV',
                     isAnimating: true,
                     idx: state.idx - 1,
                     transform: `translate3d(${prevTransform}px, 0px, 0px)`,
-                    transitionDuration: `${delay}ms`,
+                    duration: `${delay}ms`,
                 };
             case 'NEXT':
-                const nextTransform = -(slideSize * (state.idx + 2) + state.idx * padding * 2 + padding * 3);
+                const nextTransform = -(slide * (state.idx + 2) + state.idx * padding * 2 + padding * 3);
                 return {
                     dir: 'NEXT',
                     isAnimating: true,
                     idx: state.idx + 1,
                     transform: `translate3d(${nextTransform}px, 0px, 0px)`,
-                    transitionDuration: `${delay}ms`,
+                    duration: `${delay}ms`,
                 };
             case 'RESET':
                 return {
                     ...state,
                     isAnimating: false,
                     idx: action.idx,
-                    transform: action.transform,
-                    transitionDuration: action.transitionDuration,
+                    transform: `translate3d(${action.transform}px, 0px, 0px)`,
+                    duration: '0ms',
                 };
             case 'RESIZE':
                 return {
                     ...state,
-                    transform: action.transform,
-                    transitionDuration: '0ms',
+                    transform: `translate3d(${action.transform}px, 0px, 0px)`,
+                    duration: '0ms',
                 };
             case 'STOP':
                 return {
@@ -113,64 +95,94 @@ const useSlick = (props: Props) => {
         }
     };
 
+    return reducer;
+};
+
+/**
+ * useSlick hook
+ * 
+ * @param {Props} props 
+ * @return {ReturnValue}
+ */
+const useSlick = (props: Props): ReturnValue => {
+
+    const { wrapperRef, centerMode, showsPerRow, padding, length, delay } = props;
+
+    // const initialValue = useMemo(() => {
+    //     // if (centerMode) {
+
+    //     // }
+
+    //     // if (!centerMode) {
+    //     //     const nextSlideWidth = 100 / showsPerRow - 100 / (showsPerRow * (showsPerRow + 2) + length);
+    //     //     const slideWidth = innerWidth * nextSlideWidth / 100 - (padding * 2);
+    //     //     const initialTransform = -slideSize - padding;
+    //     // }
+    //     const nextSlideWidth = 100 / showsPerRow - 100 / (showsPerRow * (showsPerRow + 2) + length);
+    //     const slideWidth = innerWidth * nextSlideWidth / 100 - (padding * 2);
+    //     const transform = -slideSize - padding;
+
+    //     return {
+    //         slideWidth,
+    //         nextSlideWidth,
+    //         transformX: transform,
+    //     };
+    // }, []);
+
+    const nextSlideSize = (100 / showsPerRow) - (100 / (length + showsPerRow * (showsPerRow + 2)));
+    const slideSize = getRoundedHundredth(window.innerWidth * (nextSlideSize) / 100 - (padding * 2));
+    const initialTransform = -slideSize - padding;
+
+    const initialState: State = {
+        dir: 'NEXT',
+        idx: 0,
+        isAnimating: false,
+        transform: `translate3d(${initialTransform}px, 0px, 0px)`,
+        duration: `${delay}ms`,
+    };
+
+    const reducer = createReducer(padding, slideSize, delay);
     const [state, dispatch] = useReducer(reducer, initialState);
+    const { dir, idx, isAnimating, transform, duration } = state;
 
-    const {
-        dir,
-        idx,
-        isAnimating,
-        transform,
-        transitionDuration,
-    } = state;
-
-    const handleNext = () => {
+    // Next handler
+    const handleNext = useCallback(() => {
         if (!isAnimating) {
-            console.log('next')
             dispatch({ type: 'NEXT' });
         }
-    };
+    }, [isAnimating]);
 
-    const handlePrev = () => {
+    // Prev handler
+    const handlePrev = useCallback(() => {
         if (!isAnimating) {
-            console.log('prev')
             dispatch({ type: 'PREV' });
         }
-    };
+    }, [isAnimating]);
 
-    // 캐러셀 범위 내에서, <버튼 범위 밖에서 일어나는 이벤트만 감지하여야 함 :: 취소>
-    // 버튼은 제외시킨다 
-    const [gesture, setGesture] = useState<Gesture>();
-    // const slickRef = useRef(wrapper);
+    // The point of x coordinate of next or previous gesture
+    const [downX, setDownX] = useState<number>();
 
     useEffect(() => {
-        // const handleMouseMove = (e) => {
-        //     if (wrapperRef.current && wrapperRef.current.contains(e.target)) {
-        //         console.log('???')
-        //     }
-        // }
-
-        const handleMouseDown = (e) => {
-            if (wrapperRef.current && wrapperRef.current.contains(e.target)) {
+        // Mouse down event
+        const handleMouseDown = (e: MouseEvent) => {
+            if (wrapperRef.current && wrapperRef.current.contains(e.target as Node)) {
                 if (!isAnimating) {
-                    setGesture({
-                        downX: e.pageX,
-                        downY: e.pageY,
-                    });
+                    setDownX(e.pageX);
                 }
             }
         }
-
-        const handleMouseUp = (e) => {
-            if (wrapperRef.current && wrapperRef.current.contains(e.target)) {
+        // Mouse up event
+        const handleMouseUp = (e: MouseEvent) => {
+            if (wrapperRef.current && wrapperRef.current.contains(e.target as Node)) {
                 if (!isAnimating) {
                     const moveX = e.pageX;
-        
-                    if (gesture && (moveX - gesture.downX > 0)) {
+
+                    if (downX && (moveX - downX > 0)) {
                         dispatch({ type: 'PREV' });
                         return;
                     }
-        
-                    if (gesture && (moveX - gesture.downX < 0)) {
+
+                    if (downX && (moveX - downX < 0)) {
                         dispatch({ type: 'NEXT' });
                         return;
                     }
@@ -180,55 +192,46 @@ const useSlick = (props: Props) => {
 
         window.addEventListener('mousedown', handleMouseDown);
         window.addEventListener('mouseup', handleMouseUp);
-        // window.addEventListener('mousemove', handleMouseMove);
 
         return () => {
             window.removeEventListener('mousedown', handleMouseDown);
             window.removeEventListener('mouseup', handleMouseUp);
-            // window.removeEventListener('mousemove', handleMouseMove);
         }
-    }, [gesture, isAnimating]);
+    }, [downX, isAnimating]);
 
+    // Browser resize event
     useEffect(() => {
+        // After the animation is over, index must be between 0 and the item length
         const handleResize = () => {
-            const slideSize = Math.floor(window.innerWidth * (nextSlideSize) / 100 - (padding * 2));
+            const slideSize = getRoundedHundredth(window.innerWidth * (nextSlideSize) / 100 - (padding * 2));
 
             if (isEqual(idx, 0)) {
-                const resizeTransform = -slideSize - padding;
+                const transformX = -slideSize - padding;
 
                 dispatch({
                     type: 'RESIZE',
-                    transform: `translate3d(${resizeTransform}px, 0px, 0px)`,
-                    transitionDuration: '0ms',
+                    transform: transformX,
                 });
 
                 return;
             }
 
-            if (isEqual(state.dir, 'NEXT')) {
-                const resizeTransform = -(slideSize * state.idx + slideSize + state.idx * padding * 2 + padding);
+            if (isEqual(dir, 'NEXT')) {
+                const transformX = -(slideSize * idx + slideSize + idx * padding * 2 + padding);
 
                 dispatch({
                     type: 'RESIZE',
-                    transform: `translate3d(${resizeTransform}px, 0px, 0px)`,
-                    transitionDuration: '0ms',
+                    transform: transformX,
                 });
-
-                return;
             }
 
-            if (isEqual(state.dir, 'PREV')) {
-
-                const absIdx = Math.abs(state.idx + 1);
-                const prevTransform = -(absIdx * (slideSize + padding * 2) - padding);
+            if (isEqual(dir, 'PREV')) {
+                const transformX = -(idx * slideSize + idx * padding * 2 + slideSize + padding);
 
                 dispatch({
                     type: 'RESIZE',
-                    transform: `translate3d(${prevTransform}px, 0px, 0px)`,
-                    transitionDuration: '0ms',
+                    transform: transformX,
                 });
-
-                return;
             }
         };
 
@@ -238,61 +241,64 @@ const useSlick = (props: Props) => {
             window.removeEventListener('resize', handleResize);
         }
 
-    }, [window.innerWidth, state.idx]);
+    }, [window.innerWidth, idx]);
 
-    // 슬라이드 후 처리
+    /**
+     * Animation trick
+     */
     useEffect(() => {
         if (isAnimating) {
 
-            // NEXT RESET
+            // Reset of next action
             if (isEqual(dir, 'NEXT') && isEqual(idx, length)) {
-                const transform = -(slideSize + padding);
+                const transformX = -(slideSize + padding);
+
                 setTimeout(() => {
                     dispatch({
                         type: 'RESET',
                         idx: 0,
-                        transform: `translate3d(${transform}px, 0px, 0px)`,
-                        transitionDuration: '0ms',
+                        transform: transformX,
                     });
                 }, delay);
-
-                return;
             }
 
-            // PREV RESET
+            // Reset of prev action
             if (isEqual(dir, 'PREV') && isEqual(idx, -1)) {
-                const transform = -(length * (slideSize + padding * 2) - padding);
+                const transformX = -(length * (slideSize + padding * 2) - padding);
+
                 setTimeout(() => {
                     dispatch({
                         type: 'RESET',
                         idx: length - 1,
-                        transform: `translate3d(${transform}px, 0px, 0px)`,
-                        transitionDuration: '0ms',
+                        transform: transformX,
                     });
                 }, delay);
-
-                return;
             }
         }
-
     }, [state.idx]);
 
+    /**
+     * Stop animation after next or prev action
+     */
     useEffect(() => {
         if (isAnimating) {
             setTimeout(() => {
-                dispatch({
-                    type: 'STOP',
-                });
+                dispatch({ type: 'STOP' });
             }, delay);
         }
     }, [state]);
+
+    // const firstFrames = children.slice(0, showsPerRow);
+    // const lastframes = children.slice(children.length - showsPerRow, children.length);
+    // const concatenatedList = lastframes.concat(children, firstFrames);
 
     return {
         onPrev: handlePrev,
         onNext: handleNext,
         transform: transform,
-        duration: transitionDuration,
+        duration: duration,
         slotWidth: slideSize,
+        // children: concatenatedList,
     };
 };
 
