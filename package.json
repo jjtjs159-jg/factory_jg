@@ -12,6 +12,7 @@
     "@babel/runtime": "^7.10.2",
     "@storybook/cli": "^5.3.19",
     "@storybook/preset-create-react-app": "^3.0.0",
+    "@types/classnames": "^2.2.10",
     "@types/lodash": "^4.14.149",
     "@types/react-router-dom": "^5.1.5",
     "autoprefixer": "^9.7.4",
