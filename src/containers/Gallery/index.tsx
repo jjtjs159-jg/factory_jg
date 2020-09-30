@@ -24,22 +24,6 @@ interface Props {
     showsNextSize: number;
 }
 
-interface State {
-    // 방향
-    dir: 'NEXT' | 'PREV';
-    idx: number;
-    isAnimating: boolean;
-    transform?: CSSProperties['transform'];
-    transitionDuration?: CSSProperties['transitionDuration'];
-}
-
-type Action =
-    | { type: 'STOP' }
-    | { type: 'PREV', transform?: CSSProperties['transform'], transitionDuration?: CSSProperties['transitionDuration']}
-    | { type: 'NEXT', transform?: CSSProperties['transform'], transitionDuration?: CSSProperties['transitionDuration']}
-    | { type: 'RESET', idx: number, transform?: CSSProperties['transform'], transitionDuration?: CSSProperties['transitionDuration']}
-;
-
 const itemList = [
     {
         backgroundColor: 'red',
@@ -80,6 +64,7 @@ const index: FunctionComponent<Props> = ({
         padding,
         length: itemList.length,
         wrapperRef: wrapperRef,
+        // children: itemList,
         // centerMode: true,
     });
 
