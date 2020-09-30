@@ -5,7 +5,7 @@ import {
     useState,
     useRef,
     ReactNode,
-    MutableRefObject
+    MutableRefObject,
 } from 'react';
 import { debounce, isEqual, throttle } from 'lodash';
 
@@ -15,7 +15,7 @@ interface Props {
     padding: number;
     length: number;
     centerMode?: boolean;
-    wrapperRef: MutableRefObject<any>;
+    wrapperRef: MutableRefObject<Node | null>;
 }
 
 interface State {
