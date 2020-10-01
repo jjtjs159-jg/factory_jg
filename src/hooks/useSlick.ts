@@ -98,6 +98,9 @@ const createReducer = (padding: number, slide: number, delay: number) => {
     return reducer;
 };
 
+// TODO 제스처, PREV, NEXT 한번의 동작에 넘어가는 slide 개수
+// TODO centermode
+
 /**
  * useSlick hook
  * 
@@ -108,30 +111,38 @@ const useSlick = (props: Props): ReturnValue => {
 
     const { wrapperRef, centerMode, showsPerRow, padding, length, delay } = props;
 
-    // const initialValue = useMemo(() => {
-    //     // if (centerMode) {
+    const getInitialValue = () => {
 
-    //     // }
+        // centermode
+        if (centerMode) {
+            const nextSlideWidth = 10;
+            const slideWidth = getRoundedHundredth(((window.innerWidth - window.innerWidth / nextSlideWidth * 2) - (padding * 2) * (showsPerRow + 2)) / showsPerRow);
+            const otherThenSlotSize = (window.innerWidth - slideWidth * showsPerRow - (showsPerRow + 1) * (padding * 2));
+            const transform = -(slideWidth * showsPerRow + padding * (showsPerRow + 1) - otherThenSlotSize / 2);
 
-    //     // if (!centerMode) {
-    //     //     const nextSlideWidth = 100 / showsPerRow - 100 / (showsPerRow * (showsPerRow + 2) + length);
-    //     //     const slideWidth = innerWidth * nextSlideWidth / 100 - (padding * 2);
-    //     //     const initialTransform = -slideSize - padding;
-    //     // }
-    //     const nextSlideWidth = 100 / showsPerRow - 100 / (showsPerRow * (showsPerRow + 2) + length);
-    //     const slideWidth = innerWidth * nextSlideWidth / 100 - (padding * 2);
-    //     const transform = -slideSize - padding;
+            return {
+                slideWidth,
+                nextSlideWidth,
+                initialTransform: transform,
+                otherSize: otherThenSlotSize,
+            };
 
-    //     return {
-    //         slideWidth,
-    //         nextSlideWidth,
-    //         transformX: transform,
-    //     };
-    // }, []);
+        // !centermode
+        } else {
+            const nextSlideWidth = (100 / showsPerRow) - (100 / (length + showsPerRow * (showsPerRow + 2)));
+            const slideWidth = getRoundedHundredth(window.innerWidth * (nextSlideWidth) / 100 - (padding * 2));
+            const transform = -slideWidth - padding;
 
-    const nextSlideSize = (100 / showsPerRow) - (100 / (length + showsPerRow * (showsPerRow + 2)));
-    const slideSize = getRoundedHundredth(window.innerWidth * (nextSlideSize) / 100 - (padding * 2));
-    const initialTransform = -slideSize - padding;
+            return {
+                slideWidth,
+                nextSlideWidth,
+                initialTransform: transform,
+                otherSize: 0,
+            };
+        }
+    };
+
+    const { slideWidth, nextSlideWidth, initialTransform, otherSize } = getInitialValue();
 
     const initialState: State = {
         dir: 'NEXT',
@@ -141,7 +152,7 @@ const useSlick = (props: Props): ReturnValue => {
         duration: `${delay}ms`,
     };
 
-    const reducer = createReducer(padding, slideSize, delay);
+    const reducer = createReducer(padding, slideWidth, delay);
     const [state, dispatch] = useReducer(reducer, initialState);
     const { dir, idx, isAnimating, transform, duration } = state;
 
@@ -202,11 +213,17 @@ const useSlick = (props: Props): ReturnValue => {
     // Browser resize event
     useEffect(() => {
         // After the animation is over, index must be between 0 and the item length
-        const handleResize = () => {
-            const slideSize = getRoundedHundredth(window.innerWidth * (nextSlideSize) / 100 - (padding * 2));
+        const handleResize = debounce(() => {
+            // const slideSize = getRoundedHundredth(window.innerWidth * (nextSlideWidth) / 100 - (padding * 2)); // !centermode
+
+            const slideSize = centerMode ?
+                getRoundedHundredth(((window.innerWidth - window.innerWidth / nextSlideWidth * 2) - (padding * 2) * (showsPerRow + 2)) / showsPerRow)
+                : getRoundedHundredth(window.innerWidth * (nextSlideWidth) / 100 - (padding * 2));
 
             if (isEqual(idx, 0)) {
-                const transformX = -slideSize - padding;
+                // const transformX = -slideSize - padding; // !centermode
+                const transformX = centerMode ? -(slideWidth * showsPerRow + padding * (showsPerRow + 1) - otherSize / 2)
+                    : -slideSize - padding;
 
                 dispatch({
                     type: 'RESIZE',
@@ -233,7 +250,7 @@ const useSlick = (props: Props): ReturnValue => {
                     transform: transformX,
                 });
             }
-        };
+        }, 50);
 
         window.addEventListener('resize', handleResize);
 
@@ -251,7 +268,7 @@ const useSlick = (props: Props): ReturnValue => {
 
             // Reset of next action
             if (isEqual(dir, 'NEXT') && isEqual(idx, length)) {
-                const transformX = -(slideSize + padding);
+                const transformX = -(slideWidth + padding);
 
                 setTimeout(() => {
                     dispatch({
@@ -264,7 +281,7 @@ const useSlick = (props: Props): ReturnValue => {
 
             // Reset of prev action
             if (isEqual(dir, 'PREV') && isEqual(idx, -1)) {
-                const transformX = -(length * (slideSize + padding * 2) - padding);
+                const transformX = -(length * (slideWidth + padding * 2) - padding);
 
                 setTimeout(() => {
                     dispatch({
@@ -297,7 +314,7 @@ const useSlick = (props: Props): ReturnValue => {
         onNext: handleNext,
         transform: transform,
         duration: duration,
-        slotWidth: slideSize,
+        slotWidth: slideWidth,
         // children: concatenatedList,
     };
 };
