@@ -50,46 +50,61 @@ const getRoundedHundredth = (target: number) => {
     return Math.round(target * 10) / 10;
 };
 
-const createReducer = (padding: number, slide: number, delay: number) => {
+const createReducer = (padding: number, slide: number, showsPerRow: number, delay: number, length: number, centerMode?: boolean) => {
     const reducer = (state: State, action: Action): State => {
         switch (action.type) {
-            case 'PREV':
-                const prevTransform = isEqual(state.idx, 0) ? padding : -(Math.abs(state.idx) * (slide + padding * 2) - padding);
-                return {
-                    dir: 'PREV',
-                    isAnimating: true,
-                    idx: state.idx - 1,
-                    transform: `translate3d(${prevTransform}px, 0px, 0px)`,
-                    duration: `${delay}ms`,
-                };
-            case 'NEXT':
-                const nextTransform = -(slide * (state.idx + 2) + state.idx * padding * 2 + padding * 3);
-                return {
-                    dir: 'NEXT',
-                    isAnimating: true,
-                    idx: state.idx + 1,
-                    transform: `translate3d(${nextTransform}px, 0px, 0px)`,
-                    duration: `${delay}ms`,
-                };
-            case 'RESET':
-                return {
-                    ...state,
-                    isAnimating: false,
-                    idx: action.idx,
-                    transform: `translate3d(${action.transform}px, 0px, 0px)`,
-                    duration: '0ms',
-                };
-            case 'RESIZE':
-                return {
-                    ...state,
-                    transform: `translate3d(${action.transform}px, 0px, 0px)`,
-                    duration: '0ms',
-                };
-            case 'STOP':
-                return {
-                    ...state,
-                    isAnimating: false,
-                };
+            case 'PREV': {
+                    const otherThenSlotSize = (window.innerWidth - slide * showsPerRow - (showsPerRow + 1) * (padding * 2));
+                    const prevCenterModeTransform = 
+                        -(slide * showsPerRow + padding * (showsPerRow + 1) - otherThenSlotSize / 2 + (slide * (state.idx - 1) + padding * 2 * state.idx));
+                    const prevTransform = isEqual(state.idx, 0) ? padding : -(Math.abs(state.idx) * (slide + padding * 2) - padding);
+                    const testPrev = centerMode ? prevCenterModeTransform : prevTransform;
+
+                    return {
+                        dir: 'PREV',
+                        isAnimating: true,
+                        idx: state.idx - 1,
+                        transform: `translate3d(${testPrev}px, 0px, 0px)`,
+                        duration: `${delay}ms`,
+                    };
+                }
+            case 'NEXT': {
+                    const otherThenSlotSize = (window.innerWidth - slide * showsPerRow - (showsPerRow + 1) * (padding * 2));
+                    const nextCenterModeTransform = -(slide * showsPerRow + padding * (showsPerRow + 1) - otherThenSlotSize / 2 + (slide * (state.idx + 1) + padding * 2 * state.idx));
+
+                    const nextTransform = -(slide * (state.idx + 2) + state.idx * padding * 2 + padding * 3); // !centermode
+
+                    const testNext = centerMode ? nextCenterModeTransform : nextTransform;
+                    return {
+                        dir: 'NEXT',
+                        isAnimating: true,
+                        idx: state.idx + 1,
+                        transform: `translate3d(${testNext}px, 0px, 0px)`,
+                        duration: `${delay}ms`,
+                    };
+                }
+            case 'RESET': {
+                    return {
+                        ...state,
+                        isAnimating: false,
+                        idx: action.idx,
+                        transform: `translate3d(${action.transform}px, 0px, 0px)`,
+                        duration: '0ms',
+                    };
+                }
+            case 'RESIZE': {
+                    return {
+                        ...state,
+                        transform: `translate3d(${action.transform}px, 0px, 0px)`,
+                        duration: '0ms',
+                    };
+                }
+            case 'STOP': {
+                    return {
+                        ...state,
+                        isAnimating: false,
+                    };
+                }
             default:
                 return state;
         }
@@ -118,7 +133,7 @@ const useSlick = (props: Props): ReturnValue => {
             const nextSlideWidth = 10;
             const slideWidth = getRoundedHundredth(((window.innerWidth - window.innerWidth / nextSlideWidth * 2) - (padding * 2) * (showsPerRow + 2)) / showsPerRow);
             const otherThenSlotSize = (window.innerWidth - slideWidth * showsPerRow - (showsPerRow + 1) * (padding * 2));
-            const transform = -(slideWidth * showsPerRow + padding * (showsPerRow + 1) - otherThenSlotSize / 2);
+            const transform = -(slideWidth * showsPerRow + padding * (showsPerRow + 1) - (padding) - otherThenSlotSize / 2);
 
             return {
                 slideWidth,
@@ -152,7 +167,7 @@ const useSlick = (props: Props): ReturnValue => {
         duration: `${delay}ms`,
     };
 
-    const reducer = createReducer(padding, slideWidth, delay);
+    const reducer = createReducer(padding, slideWidth, showsPerRow, delay, length, centerMode);
     const [state, dispatch] = useReducer(reducer, initialState);
     const { dir, idx, isAnimating, transform, duration } = state;
 
@@ -213,15 +228,13 @@ const useSlick = (props: Props): ReturnValue => {
     // Browser resize event
     useEffect(() => {
         // After the animation is over, index must be between 0 and the item length
-        const handleResize = debounce(() => {
-            // const slideSize = getRoundedHundredth(window.innerWidth * (nextSlideWidth) / 100 - (padding * 2)); // !centermode
+        const handleResize = () => {
 
             const slideSize = centerMode ?
                 getRoundedHundredth(((window.innerWidth - window.innerWidth / nextSlideWidth * 2) - (padding * 2) * (showsPerRow + 2)) / showsPerRow)
                 : getRoundedHundredth(window.innerWidth * (nextSlideWidth) / 100 - (padding * 2));
 
             if (isEqual(idx, 0)) {
-                // const transformX = -slideSize - padding; // !centermode
                 const transformX = centerMode ? -(slideWidth * showsPerRow + padding * (showsPerRow + 1) - otherSize / 2)
                     : -slideSize - padding;
 
@@ -234,7 +247,8 @@ const useSlick = (props: Props): ReturnValue => {
             }
 
             if (isEqual(dir, 'NEXT')) {
-                const transformX = -(slideSize * idx + slideSize + idx * padding * 2 + padding);
+                const transformX = centerMode ? -(slideWidth * showsPerRow + padding * (showsPerRow + 1) - otherSize / 2 + (slideWidth * state.idx)) 
+                    : -(slideSize * idx + slideSize + idx * padding * 2 + padding);
 
                 dispatch({
                     type: 'RESIZE',
@@ -243,14 +257,16 @@ const useSlick = (props: Props): ReturnValue => {
             }
 
             if (isEqual(dir, 'PREV')) {
-                const transformX = -(idx * slideSize + idx * padding * 2 + slideSize + padding);
+                const transformX = centerMode ?
+                    -(slideWidth * showsPerRow + padding * (showsPerRow + 1) - otherSize / 2 + (slideWidth * state.idx + padding * 2 * state.idx))
+                    : -(idx * slideSize + idx * padding * 2 + slideSize + padding);
 
                 dispatch({
                     type: 'RESIZE',
                     transform: transformX,
                 });
             }
-        }, 50);
+        };
 
         window.addEventListener('resize', handleResize);
 
@@ -268,7 +284,8 @@ const useSlick = (props: Props): ReturnValue => {
 
             // Reset of next action
             if (isEqual(dir, 'NEXT') && isEqual(idx, length)) {
-                const transformX = -(slideWidth + padding);
+                const transformX = centerMode ? -(slideWidth * showsPerRow + padding * (showsPerRow + 1) - (padding * 2) - otherSize / 2)
+                    : -(slideWidth + padding);
 
                 setTimeout(() => {
                     dispatch({
@@ -281,7 +298,9 @@ const useSlick = (props: Props): ReturnValue => {
 
             // Reset of prev action
             if (isEqual(dir, 'PREV') && isEqual(idx, -1)) {
-                const transformX = -(length * (slideWidth + padding * 2) - padding);
+                const transformX = centerMode ? 
+                    -(slideWidth * showsPerRow + padding * (showsPerRow + 1) - otherSize / 2 + (slideWidth * (length - 1) + padding * 2 * length))
+                    : -(length * (slideWidth + padding * 2) - padding)
 
                 setTimeout(() => {
                     dispatch({

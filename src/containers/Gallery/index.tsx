@@ -50,8 +50,8 @@ const itemList = [
 
 const index: FunctionComponent<Props> = ({
     delay = 350,
-    showsPerRow = 2,
-    padding = 20,
+    showsPerRow = 3,
+    padding = 5,
 }) => {
     
     const wrapperRef = useRef(null);
@@ -65,7 +65,7 @@ const index: FunctionComponent<Props> = ({
         length: itemList.length,
         wrapperRef: wrapperRef,
         // children: itemList,
-        // centerMode: true,
+        centerMode: true,
     });
 
     const firstFrames = itemList.slice(0, showsPerRow);
