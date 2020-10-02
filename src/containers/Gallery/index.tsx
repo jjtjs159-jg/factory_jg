@@ -58,13 +58,11 @@ const index: FunctionComponent<Props> = ({
     const windowSize = useWindowSize();
 
     const { onNext, onPrev, transform, duration, slotWidth } = useSlick({
-        // windowWidth: window.innerWidth,
         delay,
         showsPerRow,
-        padding,
+        margin: padding,
         length: itemList.length,
         wrapperRef: wrapperRef,
-        // children: itemList,
         centerMode: true,
     });
 
