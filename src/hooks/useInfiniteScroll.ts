@@ -49,7 +49,8 @@ type Action =
     | { type: 'LOAD'; items: any[]; currentLength?: number }
     | { type: 'STOP'; hasMore: boolean }
     | { type: 'SET_BARHEIGHT'; barHeight: number }
-    | { type: 'SET_VIEWPORT';
+    | {
+        type: 'SET_VIEWPORT';
         viewport: {
             active: number;
             inactive: number;
@@ -142,6 +143,18 @@ const useInfiniteScroll = <T>(props: Props<T>): Return<T> => {
         barHeight,
         viewport,
     } = state;
+
+    useEffect(() => {
+        setIsFetching(false);
+
+        setIsResizing(false);
+
+        onStop(false);
+
+        onLoad({
+            items: props.initialItems as T[],
+        });
+    }, [props.initialItems]);
 
     /**
      * The next data load which is called when fetching
@@ -285,7 +298,7 @@ const useInfiniteScroll = <T>(props: Props<T>): Return<T> => {
             );
 
             const clientHeight = document.documentElement.clientHeight;
-            if (scrollTop + clientHeight >= scrollHeight - barHeight) {
+            if (scrollTop + clientHeight >= scrollHeight - barHeight - 10) {
                 setIsFetching(true);
             } else {
                 setIsFetching(false);
