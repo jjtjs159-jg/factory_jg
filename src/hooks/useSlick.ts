@@ -6,7 +6,7 @@ import {
     ReactNodeArray,
     MutableRefObject,
 } from 'react';
-import { isEqual } from 'lodash';
+import { debounce, isEqual } from 'lodash';
 
 interface Props {
     delay: number;
@@ -14,7 +14,7 @@ interface Props {
     length: number;
     showsPerRow: number;
     centerMode?: boolean;
-    wrapperRef: MutableRefObject<Node | null>;
+    wrapperRef: MutableRefObject<Node | any>;
     children?: ReactNodeArray;
 }
 
@@ -28,18 +28,19 @@ interface State {
 
 type Action =
     | { type: 'STOP' }
-    | { type: 'PREV', transform?: number, duration?: string }
-    | { type: 'NEXT', transform?: number, duration?: string }
+    | { type: 'PREV', transform?: number, duration?: number }
+    | { type: 'NEXT', transform?: number, duration?: number }
     | { type: 'RESIZE', transform: number }
-    | { type: 'RESET', idx: number, transform: number, duration?: string }
+    | { type: 'RESET', idx: number, transform: number, duration?: number }
 
 type ReturnValue = {
-    onPrev: () => void;
-    onNext: () => void;
-    transform: string;
-    duration: string;
-    slotWidth: number;
+    onPrev?: () => void;
+    onNext?: () => void;
+    transform?: string;
+    duration?: string;
+    slotWidth?: number;
     children?: ReactNodeArray;
+    loaded: boolean;
 }
 
 type ReducerMaterial = Omit<Props, 'wrapperRef' | 'length' | 'children'> & {
@@ -99,7 +100,7 @@ const createReducer = (material: ReducerMaterial) => {
                     isAnimating: false,
                     idx: action.idx,
                     transform: `translate3d(${action.transform}px, 0px, 0px)`,
-                    duration: '0ms',
+                    duration: `${action.duration}ms` || '0ms',
                 };
             }
             case 'RESIZE': {
@@ -130,16 +131,23 @@ const createReducer = (material: ReducerMaterial) => {
  * @return {ReturnValue}
  */
 const useSlick = (props: Props): ReturnValue => {
-
     const { wrapperRef, centerMode, showsPerRow, margin, length, delay, children } = props;
 
-    const getInitialValue = () => {
+    const [wrapperWidth, setWrapperWidth] = useState(wrapperRef.current && wrapperRef.current.clientWidth);
 
+    useEffect(() => {
+        if (wrapperRef.current) {
+            setWrapperWidth(Number(wrapperRef.current.clientWidth));
+        }
+
+    }, [wrapperRef.current, wrapperRef.current && wrapperRef.current.clientWidth]);
+
+    const getInitialValue = () => {
         // centermode
         if (centerMode) {
             const nextSlideWidth = 10;
-            const slideWidth = roundedNumber(((window.innerWidth - window.innerWidth / nextSlideWidth * 2) - (margin * 2) * (showsPerRow + 2)) / showsPerRow);
-            const otherThenSlotSize = (window.innerWidth - slideWidth * showsPerRow - (showsPerRow + 1) * (margin * 2));
+            const slideWidth = roundedNumber(((wrapperWidth - wrapperWidth / nextSlideWidth * 2) - (margin * 2) * (showsPerRow + 2)) / showsPerRow);
+            const otherThenSlotSize = (wrapperWidth - slideWidth * showsPerRow - (showsPerRow + 1) * (margin * 2));
             const transform = -(slideWidth * showsPerRow + margin * (showsPerRow + 1) - margin - otherThenSlotSize / 2);
 
             return {
@@ -152,7 +160,7 @@ const useSlick = (props: Props): ReturnValue => {
             // !centermode
         } else {
             const nextSlideWidth = (100 / showsPerRow) - (100 / (length + showsPerRow * (showsPerRow + 2)));
-            const slideWidth = roundedNumber(window.innerWidth * (nextSlideWidth) / 100 - (margin * 2));
+            const slideWidth = roundedNumber(wrapperWidth * (nextSlideWidth) / 100 - (margin * 2));
             const transform = -slideWidth - margin;
 
             return {
@@ -186,6 +194,15 @@ const useSlick = (props: Props): ReturnValue => {
     const [state, dispatch] = useReducer(reducer, initialState);
     const { dir, idx, isAnimating, transform, duration } = state;
 
+    useEffect(() => {
+        dispatch({
+            type: 'RESET',
+            idx: 0,
+            transform: initialTransform,
+            duration: delay,
+        });
+    }, [initialTransform]);
+
     // Next handler
     const handleNext = useCallback(() => {
         if (!isAnimating) {
@@ -202,10 +219,60 @@ const useSlick = (props: Props): ReturnValue => {
 
     // The point of x coordinate of next or previous gesture
     const [downX, setDownX] = useState<number>();
+    const [touchDownX, setTouchDownX] = useState<{x?: number; isTouchActive?: boolean; }>();
+
+    useEffect(() => {
+        const handleTouchStart = useCallback((e: TouchEvent) => {
+            console.log('aa')
+            if (wrapperRef.current && wrapperRef.current.contains(e.changedTouches[0].target as Node)) {
+                console.log(e)
+                if (!isAnimating && !touchDownX?.isTouchActive) {
+                    console.log('222')
+                    setTouchDownX({
+                        x: e.changedTouches[0].pageX,
+                        isTouchActive: true,
+                    });
+                }
+            }
+        }, [])
+
+        const handleTouchEnd = (e: TouchEvent) => {
+            console.log('bb')
+            if (!isAnimating && !!touchDownX?.isTouchActive) {
+                console.log(e)
+                const moveX = e.changedTouches[0].pageX;
+
+                if (touchDownX?.x && (moveX - touchDownX?.x > 0)) {
+                    dispatch({ type: 'PREV' });
+                    setTouchDownX({
+                        isTouchActive: false,
+                    })
+                    return;
+                }
+
+                if (touchDownX?.x && (moveX - touchDownX?.x < 0)) {
+                    dispatch({ type: 'NEXT' });
+                    setTouchDownX({
+                        isTouchActive: false,
+                    })
+                    return;
+                }
+            }
+        }
+
+        window.addEventListener('touchstart', handleTouchStart);
+        window.addEventListener('touchend', handleTouchEnd);
+
+        return () => {
+            window.removeEventListener('touchstart', handleTouchStart);
+            window.addEventListener('touchend', handleTouchEnd);
+        }
+    }, [touchDownX, isAnimating]);
 
     useEffect(() => {
         // Mouse down event
         const handleMouseDown = (e: MouseEvent) => {
+            console.log('down')
             if (wrapperRef.current && wrapperRef.current.contains(e.target as Node)) {
                 if (!isAnimating) {
                     setDownX(e.pageX);
@@ -214,6 +281,7 @@ const useSlick = (props: Props): ReturnValue => {
         }
         // Mouse up event
         const handleMouseUp = (e: MouseEvent) => {
+            console.log('up')
             if (wrapperRef.current && wrapperRef.current.contains(e.target as Node)) {
                 if (!isAnimating) {
                     const moveX = e.pageX;
@@ -244,10 +312,9 @@ const useSlick = (props: Props): ReturnValue => {
     useEffect(() => {
         // After the animation is over, index must be between 0 and the item length
         const handleResize = () => {
-
             const slideSize = centerMode ?
-                roundedNumber(((window.innerWidth - window.innerWidth / nextSlideWidth * 2) - (margin * 2) * (showsPerRow + 2)) / showsPerRow)
-                : roundedNumber(window.innerWidth * (nextSlideWidth) / 100 - (margin * 2));
+                roundedNumber(((wrapperWidth - wrapperWidth / nextSlideWidth * 2) - (margin * 2) * (showsPerRow + 2)) / showsPerRow)
+                : roundedNumber(wrapperWidth * (nextSlideWidth) / 100 - (margin * 2));
 
             if (isEqual(idx, 0)) {
                 const transformX = centerMode ? -(slideWidth * showsPerRow + margin * (showsPerRow + 1) - otherSize / 2)
@@ -289,7 +356,7 @@ const useSlick = (props: Props): ReturnValue => {
             window.removeEventListener('resize', handleResize);
         }
 
-    }, [window.innerWidth, idx]);
+    }, [wrapperWidth, idx]);
 
     /**
      * Animation trick
@@ -307,6 +374,7 @@ const useSlick = (props: Props): ReturnValue => {
                         type: 'RESET',
                         idx: 0,
                         transform: transformX,
+                        duration: 0,
                     });
                 }, delay);
             }
@@ -322,6 +390,7 @@ const useSlick = (props: Props): ReturnValue => {
                         type: 'RESET',
                         idx: length - 1,
                         transform: transformX,
+                        duration: 0,
                     });
                 }, delay);
             }
@@ -343,6 +412,12 @@ const useSlick = (props: Props): ReturnValue => {
     const backFrames = children?.slice(children.length - showsPerRow, children.length);
     const concatenatedList = backFrames?.concat(children, frontFrames);
 
+    if (!wrapperRef.current) {
+        return {
+            loaded: false,
+        };
+    }
+
     return {
         onPrev: handlePrev,
         onNext: handleNext,
@@ -350,6 +425,7 @@ const useSlick = (props: Props): ReturnValue => {
         duration: duration,
         slotWidth: slideWidth,
         children: concatenatedList,
+        loaded: true,
     };
 };
 
