@@ -14,7 +14,7 @@ interface Props {
     length: number;
     showsPerRow: number;
     centerMode?: boolean;
-    wrapperRef: MutableRefObject<Node | any>;
+    wrapperRef: MutableRefObject<Element | null>;
     children?: ReactNodeArray;
 }
 
@@ -142,6 +142,12 @@ const useSlick = (props: Props): ReturnValue => {
 
     }, [wrapperRef.current, wrapperRef.current && wrapperRef.current.clientWidth]);
 
+    if (!wrapperWidth) {
+        return {
+            loaded: false,
+        };
+    }
+
     const getInitialValue = () => {
         // centermode
         if (centerMode) {
@@ -222,24 +228,19 @@ const useSlick = (props: Props): ReturnValue => {
     const [touchDownX, setTouchDownX] = useState<{x?: number; isTouchActive?: boolean; }>();
 
     useEffect(() => {
-        const handleTouchStart = useCallback((e: TouchEvent) => {
-            console.log('aa')
+        const handleTouchStart = (e: TouchEvent) => {
             if (wrapperRef.current && wrapperRef.current.contains(e.changedTouches[0].target as Node)) {
-                console.log(e)
                 if (!isAnimating && !touchDownX?.isTouchActive) {
-                    console.log('222')
                     setTouchDownX({
                         x: e.changedTouches[0].pageX,
                         isTouchActive: true,
                     });
                 }
             }
-        }, [])
+        }
 
         const handleTouchEnd = (e: TouchEvent) => {
-            console.log('bb')
             if (!isAnimating && !!touchDownX?.isTouchActive) {
-                console.log(e)
                 const moveX = e.changedTouches[0].pageX;
 
                 if (touchDownX?.x && (moveX - touchDownX?.x > 0)) {
@@ -265,14 +266,13 @@ const useSlick = (props: Props): ReturnValue => {
 
         return () => {
             window.removeEventListener('touchstart', handleTouchStart);
-            window.addEventListener('touchend', handleTouchEnd);
+            window.removeEventListener('touchend', handleTouchEnd);
         }
     }, [touchDownX, isAnimating]);
 
     useEffect(() => {
         // Mouse down event
         const handleMouseDown = (e: MouseEvent) => {
-            console.log('down')
             if (wrapperRef.current && wrapperRef.current.contains(e.target as Node)) {
                 if (!isAnimating) {
                     setDownX(e.pageX);
@@ -281,7 +281,6 @@ const useSlick = (props: Props): ReturnValue => {
         }
         // Mouse up event
         const handleMouseUp = (e: MouseEvent) => {
-            console.log('up')
             if (wrapperRef.current && wrapperRef.current.contains(e.target as Node)) {
                 if (!isAnimating) {
                     const moveX = e.pageX;
