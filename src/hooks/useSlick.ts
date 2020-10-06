@@ -133,20 +133,14 @@ const createReducer = (material: ReducerMaterial) => {
 const useSlick = (props: Props): ReturnValue => {
     const { wrapperRef, centerMode, showsPerRow, margin, length, delay, children } = props;
 
-    const [wrapperWidth, setWrapperWidth] = useState(wrapperRef.current && wrapperRef.current.clientWidth);
+    const [wrapperWidth, setWrapperWidth] = useState(wrapperRef.current && wrapperRef.current.clientWidth || 0);
 
     useEffect(() => {
         if (wrapperRef.current) {
             setWrapperWidth(Number(wrapperRef.current.clientWidth));
         }
 
-    }, [wrapperRef.current, wrapperRef.current && wrapperRef.current.clientWidth]);
-
-    if (!wrapperWidth) {
-        return {
-            loaded: false,
-        };
-    }
+    }, [wrapperRef, wrapperRef.current, wrapperRef.current && wrapperRef.current.clientWidth]);
 
     const getInitialValue = () => {
         // centermode
@@ -205,7 +199,7 @@ const useSlick = (props: Props): ReturnValue => {
             type: 'RESET',
             idx: 0,
             transform: initialTransform,
-            duration: delay,
+            duration: 0,
         });
     }, [initialTransform]);
 
@@ -411,7 +405,7 @@ const useSlick = (props: Props): ReturnValue => {
     const backFrames = children?.slice(children.length - showsPerRow, children.length);
     const concatenatedList = backFrames?.concat(children, frontFrames);
 
-    if (!wrapperRef.current) {
+    if (!wrapperRef || !wrapperRef.current) {
         return {
             loaded: false,
         };
