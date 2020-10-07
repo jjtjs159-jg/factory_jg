@@ -64,6 +64,7 @@ const index: FunctionComponent<Props> = ({
         length: itemList.length,
         wrapperRef: wrapperRef,
         centerMode: true,
+        hideNextSlot: true,
     });
 
     const firstFrames = itemList.slice(0, showsPerRow);
@@ -73,25 +74,27 @@ const index: FunctionComponent<Props> = ({
     return (
         <Fragment>
             <div className={cx('slick')} ref={wrapperRef}>
-                <div className={cx('slick-wrapper')} style={{ transform, transitionDuration: duration }}>
-                    {concatenatedList.map((item, i) => {
-                        return (
-                            <div
-                                key={i}
-                                className={cx('slot')}
-                                style={{
-                                    backgroundColor: item.backgroundColor,
-                                    minWidth: `${slotWidth}px`,
-                                    minHeight: '150px',
-                                    maxHeight: '300px',
-                                    margin: `0px ${padding}px`,
-                                }}
-                            >
-                                {/* <Image src="./src/containers/Gallery/thumb-doctork-camg.jpg" /> */}
-                            </div>
-                        );
-                    })}
-                </div>
+                <div className={cx('left-hide')} />
+                    <div className={cx('slick-wrapper')} style={{ transform, transitionDuration: duration }}>
+                            {concatenatedList.map((item, i) => {
+                                return (
+                                    <div
+                                        key={i}
+                                        className={cx('slot')}
+                                        style={{
+                                            backgroundColor: item.backgroundColor,
+                                            minWidth: `${slotWidth}px`,
+                                            minHeight: '150px',
+                                            maxHeight: '300px',
+                                            margin: `0px ${padding}px`,
+                                        }}
+                                    >
+                                        {/* <Image src="./src/containers/Gallery/thumb-doctork-camg.jpg" /> */}
+                                    </div>
+                                );
+                            })}
+                    </div>
+                <div className={cx('right-hide')} />
             </div>
             <button onClick={onPrev}>Prev</button>
             <button onClick={onNext}>Next</button>

@@ -28,3 +28,27 @@ img {
     flex-direction: column;
     flex-flow: column;
 }
+
+.hidden {
+    display: none;
+}
+
+.left-hide {
+    position: absolute;
+    left: 0;
+    top: 0;
+    background: white;
+    width: 132px;
+    height: 297px;
+    z-index: 2;
+}
+
+.right-hide {
+    position: absolute;
+    right: 0;
+    top: 0;
+    background: white;
+    width: 115px;
+    height: 297px;
+    z-index: 2;
+}

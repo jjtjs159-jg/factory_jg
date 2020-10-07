@@ -16,6 +16,7 @@ interface Props {
     centerMode?: boolean;
     wrapperRef: MutableRefObject<Element | null>;
     children?: ReactNodeArray;
+    hideNextSlot?: boolean;
 }
 
 interface State {
@@ -194,14 +195,19 @@ const useSlick = (props: Props): ReturnValue => {
     const [state, dispatch] = useReducer(reducer, initialState);
     const { dir, idx, isAnimating, transform, duration } = state;
 
+    const [count, setCount] = useState(0);
+
     useEffect(() => {
-        dispatch({
-            type: 'RESET',
-            idx: 0,
-            transform: initialTransform,
-            duration: 0,
-        });
-    }, [initialTransform]);
+        if (count !== 2) {
+            dispatch({
+                type: 'RESET',
+                idx: 0,
+                transform: initialTransform,
+                duration: 0,
+            });
+            setCount(count + 1);
+        }
+    }, [initialTransform, count]);
 
     // Next handler
     const handleNext = useCallback(() => {
