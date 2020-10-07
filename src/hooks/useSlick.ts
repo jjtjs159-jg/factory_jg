@@ -146,10 +146,9 @@ const useSlick = (props: Props): ReturnValue => {
         // centermode
         if (centerMode) {
             const nextSlideWidth = 10;
-            // const slideWidth = roundedNumber(((wrapperWidth) - (margin * 2) * (showsPerRow + 2)) / showsPerRow);
-            const slideWidth = roundedNumber((wrapperWidth - margin * 2 * showsPerRow) / showsPerRow)
+            const slideWidth = roundedNumber(((wrapperWidth - wrapperWidth / nextSlideWidth * 2) - (margin * 2) * (showsPerRow + 2)) / showsPerRow);
             const otherThenSlotSize = (wrapperWidth - slideWidth * showsPerRow - (showsPerRow + 1) * (margin * 2));
-            const transform = -((slideWidth + margin * 2) * showsPerRow);
+            const transform = -(slideWidth * showsPerRow + margin * (showsPerRow + 1) - margin - otherThenSlotSize / 2);
 
             return {
                 slideWidth,
