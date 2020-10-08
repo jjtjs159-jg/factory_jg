@@ -14,6 +14,7 @@ import { call, spawn, put, takeEvery } from "redux-saga/effects";
 import { AUTH_REQUEST, authRequest, authFail, authSuccess} from "../actions/Test";
 import requestApi from 'api/requestApi';
 
+// 콜백
 function* fetchCallData() {
     try {
         // yield put(authRequest());
@@ -33,7 +34,9 @@ function* fetchCallData() {
     }
 }
 
+// 이벤트 감시자
 function* watchCall() {
+    // AUTH_REQUEST로 받는 모든 이벤트를 받아 콜백 실행
     yield takeEvery(AUTH_REQUEST, fetchCallData);
 }
 

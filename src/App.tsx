@@ -5,6 +5,7 @@ import { Provider } from 'react-redux';
 import { configureStore } from './store/store';
 import saga from './sagas/index';
 
+// 스토어를 runsaga로 실행
 const store = configureStore();
 store.runSaga(saga);
 
