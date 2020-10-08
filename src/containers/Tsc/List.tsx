@@ -9,7 +9,7 @@ const List: FunctionComponent<Props> = ({
 }) => {
     return (
         <Fragment>
-            {data.map((d, i) => (
+            {data!.map((d, i) => (
                 <div key={i}>
                     {d}
                 </div>
