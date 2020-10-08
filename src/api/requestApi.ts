@@ -1,6 +1,7 @@
 interface Payload {
     method?: string;
     url: string;
+    version?: string;
 }
 
 // const API_URL = 'http://localhost:3000';

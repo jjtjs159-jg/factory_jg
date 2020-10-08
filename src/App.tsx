@@ -2,18 +2,31 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import Home from './Home';
 import { Provider } from 'react-redux';
-import { createStore } from 'redux';
-import reducer from 'reducers';
+import { configureStore } from './store/store';
+import saga from './sagas/index';
 
-const store = createStore(reducer);
+const store = configureStore();
+store.runSaga(saga);
 
-const App = () => {
-    
-    return (
+const render = () => {
+    ReactDOM.render(
         <Provider store={store}>
             <Home />
-        </Provider>
+        </Provider>,
+        document.getElementById('app')
     );
 };
 
-ReactDOM.render(<App />, document.getElementById('app'));
+store.subscribe(render);
+render();
+
+// const App = () => {
+    
+//     return (
+//         <Provider store={store}>
+//             <Home />
+//         </Provider>
+//     );
+// };
+
+// ReactDOM.render(<App />, document.getElementById('app'));

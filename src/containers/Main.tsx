@@ -50,38 +50,42 @@ const Main: FunctionComponent<Props> = ({
     dispatch,
 }) => {
 
-    const handleTest = () => {
-        dispatch(testActions.getTest());
-    };
-
-    const [state, setState] = useState<State>({
-        loaded: false,
-        data: {},
-    });
-
-    const test = async () => {
-        const result = await requestApi({
-            url: '/',
-        }).then((res: any) => {
-            return res;
-        }).catch((error: any) => {
-            throw error;
-        });
-
-        return result;
-    };
+    // const handleTest = () => {
+    //     dispatch(testActions.getTest());
+    // };
 
     useEffect(() => {
-        test().then((res: any) => {
-            setState({
-                loaded: true,
-                data: res,
-            });
-            return res;
-        }).catch((error: any) => {
-            throw error;
-        });
+        dispatch(testActions.authRequest());
     }, []);
+
+    // const [state, setState] = useState<State>({
+    //     loaded: false,
+    //     data: {},
+    // });
+
+    // const test = async () => {
+    //     const result = await requestApi({
+    //         url: '/',
+    //     }).then((res: any) => {
+    //         return res;
+    //     }).catch((error: any) => {
+    //         throw error;
+    //     });
+
+    //     return result;
+    // };
+
+    // useEffect(() => {
+    //     test().then((res: any) => {
+    //         setState({
+    //             loaded: true,
+    //             data: res,
+    //         });
+    //         return res;
+    //     }).catch((error: any) => {
+    //         throw error;
+    //     });
+    // }, []);
 
     return (
         <div>
@@ -100,7 +104,7 @@ const Main: FunctionComponent<Props> = ({
 
 const mapStateToProps = (state: any) => {
     return {
-        user: state.user,
+        test: state.test,
     };
 };
 
